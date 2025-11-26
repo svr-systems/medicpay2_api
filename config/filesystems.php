@@ -61,6 +61,20 @@ return [
             'visibility' => 'public',
         ],
 
+        'DoctorSpecialty' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/DoctorSpecialty'),
+            'url' => env('APP_URL') . '/storage',
+            'visibility' => 'public',
+        ],
+
+        'UserBankData' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/UserBankData'),
+            'url' => env('APP_URL') . '/storage',
+            'visibility' => 'public',
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

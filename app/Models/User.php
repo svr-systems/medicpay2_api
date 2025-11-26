@@ -32,6 +32,10 @@ class User extends Authenticatable {
     return Validator::make($data, $rules, $msgs);
   }
 
+  static public function getUiid($id) {
+    return 'U-' . str_pad($id, 3, '0', STR_PAD_LEFT);
+  }
+
   public static function validPassword($data) {
     $rules = ['password' => 'required|string|min:8|max:30|regex:/(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[!@$%*])/'];
 
@@ -91,19 +95,21 @@ class User extends Authenticatable {
 
   static public function getItems($req) {
     $items = User::
-      where('active', boolval($req->active));
+      where('is_active', boolval($req->is_active));
 
     $items = $items->
       orderBy('name')->
-      orderBy('surname_p')->
-      orderBy('surname_m')->
+      orderBy('paternal_surname')->
+      orderBy('maternal_surname')->
       get([
         'id',
-        'active',
+        'is_active',
         'name',
-        'surname_p',
-        'surname_m',
+        'paternal_surname',
+        'maternal_surname',
+        'curp',
         'email',
+        'phone',
         'role_id',
         'email_verified_at',
       ]);
@@ -112,6 +118,7 @@ class User extends Authenticatable {
       $item->key = $key;
       $item->full_name = GenController::getFullName($item);
       $item->role = Role::find($item->role_id, ['name']);
+      $item->uiid = User::getUiid($item->id);
     }
 
     return $items;
@@ -121,7 +128,7 @@ class User extends Authenticatable {
     $item = User::
       find($id, [
         'id',
-        'active',
+        'is_active',
         'created_at',
         'updated_at',
         'created_by_id',
@@ -132,6 +139,7 @@ class User extends Authenticatable {
         'maternal_surname',
         'curp',
         'email',
+        'phone',
         'avatar',
         'role_id',
       ]);
@@ -144,6 +152,7 @@ class User extends Authenticatable {
       $item->avatar_doc = null;
       $item->avatar_dlt = false;
       $item->role = Role::find($item->role_id, ['name']);
+      $item->uiid = User::getUiid($item->id);
     }
 
     return $item;

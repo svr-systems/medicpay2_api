@@ -43,7 +43,7 @@ class UserController extends Controller {
         return $this->apiRsp(422, 'ID no existente');
       }
 
-      $item->active = false;
+      $item->is_active = false;
       $item->updated_by_id = $req->user()->id;
       $item->save();
 
@@ -57,6 +57,32 @@ class UserController extends Controller {
       return $this->apiRsp(500, null, $err);
     }
 
+  }
+
+  public function restore(Request $req) {
+    DB::beginTransaction();
+    try {
+      $item = User::find($req->id);
+
+      if (!$item) {
+        return $this->apiRsp(422, 'ID no existente');
+      }
+
+      $user = User::find($item->id);
+      $user->is_active = true;
+      $user->updated_by_id = $req->user()->id;
+      $user->save();
+
+      DB::commit();
+      return $this->apiRsp(
+        200,
+        'Registro activado correctamente',
+        ['item' => User::getItem(null, $item->id)]
+      );
+    } catch (Throwable $err) {
+      DB::rollback();
+      return $this->apiRsp(500, null, $err);
+    }
   }
 
   public function store(Request $req) {

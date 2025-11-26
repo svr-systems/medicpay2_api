@@ -80,4 +80,12 @@ class Hospital extends Model {
 
     return $item;
   }
+
+  static public function getItemBySubdomain($subdomain) {
+    $item = Hospital::where('subdomain',$subdomain)->
+      where('is_active',true)->
+      first();
+
+    return $item;
+  }
 }
