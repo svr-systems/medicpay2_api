@@ -76,8 +76,8 @@ class GenController extends Controller {
   public static function getFullName($data) {
     return trim(
       $data->name . ' ' .
-      $data->surname_p . ' ' .
-      trim($data->surname_m) . ' '
+      $data->paternal_surname . ' ' .
+      trim($data->maternal_surname) . ' '
     );
   }
 
@@ -85,11 +85,19 @@ class GenController extends Controller {
     return GenController::filter(env('APP_DEBUG'), 'b');
   }
 
-  public static function moneyFormat($number){
+  public static function moneyFormat($number) {
     return number_format($number, 2, '.', ',');
   }
 
-  public static function numericFormat($number){
+  public static function numericFormat($number) {
     return number_format($number, 0, '.', ',');
+  }
+
+  public static function getDateText($date) {
+    date_default_timezone_set('America/Mexico_City');
+    setlocale(LC_ALL, "es_ES");
+    \App::setLocale('es');
+    $date = strtotime($date);
+    return strftime('%A %e de %B de %Y', $date);
   }
 }

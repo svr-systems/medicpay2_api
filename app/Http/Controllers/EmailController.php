@@ -68,4 +68,12 @@ class EmailController extends Controller
       Mail::to($email)->send(new GenAttachmentMailable($data, 'Ticket', 'SendTicket',$file_path));
     }
   }
+
+  public static function sendConsultation($email, $data, $file_path) {
+    $email = GenController::isAppDebug() ? env('MAIL_DEBUG') : $email;
+
+    if (!GenController::empty($email)) {
+      Mail::to($email)->send(new GenAttachmentMailable($data, 'Consulta', 'SendConsultation',$file_path));
+    }
+  }
 }

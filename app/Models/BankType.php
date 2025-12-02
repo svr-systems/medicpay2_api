@@ -17,4 +17,18 @@ class BankType extends Model {
 
     return $items;
   }
+
+  static public function getByCode($bank_code) {
+    $item = BankType::
+      where('code', 'LIKE', '%' . $bank_code)->
+      first(['id','name']);
+
+    if(!$item){
+      $item = new \stdClass;
+      $item->id = null;
+      $item->name = "SIN COINSIDENCIA BANCARIA";
+    }
+
+    return $item;
+  }
 }

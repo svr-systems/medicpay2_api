@@ -21,7 +21,6 @@ class UserBankData extends Model {
 
   public static function valid($data) {
     $rules = [
-      'user_id' => 'required|numeric',
       'bank_type_id' => 'required|numeric',
       'bank_account' => 'required|string|min:2|max:15',
       'bank_clabe' => 'required|string|min:2|max:18',
@@ -49,12 +48,11 @@ class UserBankData extends Model {
   }
 
   static public function getItems($req) {
-    $items = UserBankData::
-    where('is_active', boolval($req->is_active))->
-    where('user_id',$req->user_id);
+    $item = UserBankData::
+    where('user_id', $req->user()->id);
 
-    $items = $items->
-      get([
+    $item = $item->
+      first([
         'id',
         'is_active',
         'user_id',
@@ -63,12 +61,22 @@ class UserBankData extends Model {
         'bank_clabe'
       ]);
 
-    foreach ($items as $key => $item) {
-      $item->key = $key;
-      $item->uiid = UserBankData::getUiid($item->id);
-    }
+      if($item){
+        $item->uiid = UserBankData::getUiid($item->id);
+        $item->bank_type = BankType::find($item->bank_type_id,['id','name']);
+      }else{
+        $item = new \stdClass;
+        $item->id = "";
+        $item->is_active = true;
+        $item->bank_type_id = "";
+        $item->bank_account = "";
+        $item->bank_clabe = "";
+        $item->bank_type = new \stdClass();
+        $item->bank_type->id = "";
+        $item->bank_type->name = "";
+      }
 
-    return $items;
+    return $item;
   }
 
   static public function getItem($req, $id) {

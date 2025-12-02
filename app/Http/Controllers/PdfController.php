@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Crypt;
 use Illuminate\Http\Request;
 use Codedge\Fpdf\Fpdf\Fpdf;
 use Storage;
@@ -21,14 +22,27 @@ class PdfController extends Controller {
       $this->fpdf = new Fpdf;
       $this->fpdf->AddPage();
 
-      switch($req->modo_lectura){
-        case '05': $modo_ingreso = 'I@1'; break;
-        case '01': $modo_ingreso = 'T1'; break;
-        case '80': $modo_ingreso = 'D@1'; break;
-        case '90': $modo_ingreso = 'D@1'; break;
-        case '07': $modo_ingreso = 'C@1'; break;
-        case '91': $modo_ingreso = 'C@1'; break;
-        default: $modo_ingreso = '';
+      switch ($req->modo_lectura) {
+        case '05':
+          $modo_ingreso = 'I@1';
+          break;
+        case '01':
+          $modo_ingreso = 'T1';
+          break;
+        case '80':
+          $modo_ingreso = 'D@1';
+          break;
+        case '90':
+          $modo_ingreso = 'D@1';
+          break;
+        case '07':
+          $modo_ingreso = 'C@1';
+          break;
+        case '91':
+          $modo_ingreso = 'C@1';
+          break;
+        default:
+          $modo_ingreso = '';
       }
       $x = 65;
       $y_ini = $this->fpdf->GetY() - 5;
@@ -36,7 +50,7 @@ class PdfController extends Controller {
       $this->fpdf->SetXY($x, 10);
       $this->fpdf->Cell(80, 5, utf8_decode('BBVA'), 0, 0, 'C');
       $y = $this->fpdf->GetY() + 5;
-      $this->fpdf->Image(Storage::disk('public')->path('logo-negro.png'),90,$y,30,7,'png');
+      $this->fpdf->Image(Storage::disk('public')->path('logo-negro.png'), 90, $y, 30, 7, 'png');
       $y += 7;
       $this->fpdf->SetXY($x, $y);
       $this->fpdf->Cell(80, 5, utf8_decode('AVENIDA IRRIGACION 103-LOCAL 13 C'), 0, 0, 'C');
@@ -202,7 +216,7 @@ class PdfController extends Controller {
       $y += 5;
       $this->fpdf->SetXY($x, $y);
       $this->fpdf->Cell(80, 5, utf8_decode('C   L   I   E   N   T   E'), 0, 0, 'C');
-      
+
       $this->fpdf->Line($x - 5, $y_ini, $x + 85, $y_ini);
       //line bot
       $this->fpdf->Line($x - 5, $y + 10, $x + 85, $y + 10);
@@ -214,14 +228,27 @@ class PdfController extends Controller {
       ////////////////////////CLIENTE////////////////////////////
       $this->fpdf->AddPage();
 
-      switch($req->modo_lectura){
-        case '05': $modo_ingreso = 'I@1'; break;
-        case '01': $modo_ingreso = 'T1'; break;
-        case '80': $modo_ingreso = 'D@1'; break;
-        case '90': $modo_ingreso = 'D@1'; break;
-        case '07': $modo_ingreso = 'C@1'; break;
-        case '91': $modo_ingreso = 'C@1'; break;
-        default: $modo_ingreso = '';
+      switch ($req->modo_lectura) {
+        case '05':
+          $modo_ingreso = 'I@1';
+          break;
+        case '01':
+          $modo_ingreso = 'T1';
+          break;
+        case '80':
+          $modo_ingreso = 'D@1';
+          break;
+        case '90':
+          $modo_ingreso = 'D@1';
+          break;
+        case '07':
+          $modo_ingreso = 'C@1';
+          break;
+        case '91':
+          $modo_ingreso = 'C@1';
+          break;
+        default:
+          $modo_ingreso = '';
       }
       $x = 65;
       $y_ini = $this->fpdf->GetY() - 5;
@@ -229,7 +256,7 @@ class PdfController extends Controller {
       $this->fpdf->SetXY($x, 10);
       $this->fpdf->Cell(80, 5, utf8_decode('BBVA'), 0, 0, 'C');
       $y = $this->fpdf->GetY() + 5;
-      $this->fpdf->Image(Storage::disk('public')->path('logo-negro.png'),90,$y,30,7,'png');
+      $this->fpdf->Image(Storage::disk('public')->path('logo-negro.png'), 90, $y, 30, 7, 'png');
       $y += 7;
       $this->fpdf->SetXY($x, $y);
       $this->fpdf->Cell(80, 5, utf8_decode('AVENIDA IRRIGACION 103-LOCAL 13 C'), 0, 0, 'C');
@@ -416,6 +443,76 @@ class PdfController extends Controller {
 
       $data = new \stdClass;
       // $data->pdf64 = $pdf64;
+      $data->path = $filename;
+
+      return $filename;
+
+      // return response($this->fpdf->Output('S'))
+      //   ->header('Content-Type', 'application/pdf')
+      //   ->header('Content-Disposition', 'inline; filename="' . $title . '.pdf"');
+
+    } catch (\Throwable $th) {
+      return response()->json([
+        "success" => false,
+        "message" => "ERR. " . $th
+      ], 200);
+    }
+  }
+  public function consultation($data) {
+    try {
+      $this->fpdf = new Fpdf;
+      $this->fpdf->AddPage();
+
+      $x = 10;
+      $y = 10;
+      $this->fpdf->SetFont('times', '', 15);
+      $this->fpdf->SetXY($x, $y);
+      $this->fpdf->Cell($x, 5, utf8_decode('Consulta'), 0, 0, 'L');
+      $y += 5;
+      $this->fpdf->SetXY($x, $y);
+      $this->fpdf->Cell($x, 5, utf8_decode('ID: ' . $data->uiid), 0, 0, 'L');
+      $y += 5;
+      $this->fpdf->SetXY($x, $y);
+      $this->fpdf->Cell($x, 5, utf8_decode('Folio: ' . $data->folio), 0, 0, 'L');
+      $y += 5;
+      $this->fpdf->SetXY($x, $y);
+      $this->fpdf->Cell($x, 5, utf8_decode('Fecha y hora: ' . $data->date), 0, 0, 'L');
+      $y += 5;
+      $this->fpdf->SetXY($x, $y);
+      $this->fpdf->Cell($x, 5, utf8_decode('Medico: ' . $data->doctor), 0, 0, 'L');
+      $y += 5;
+      $this->fpdf->SetXY($x, $y);
+      $this->fpdf->Cell($x, 5, utf8_decode('Paciente: ' . $data->patient), 0, 0, 'L');
+      $y += 5;
+      $this->fpdf->SetXY($x, $y);
+      $this->fpdf->Cell($x, 5, utf8_decode('Monto: $' . GenController::moneyFormat($data->charge_amount) . ' MXN'), 0, 0, 'L');
+      $y += 5;
+
+      $title = "Consultation - " . time();
+
+      $folio_encripted = Crypt::encryptString($data->folio);
+
+      $qr_name = 'user_qr_' . $title . '.png';
+      \QrCode::format('png')
+        ->size(512)
+        ->generate(
+          $folio_encripted,
+          Storage::disk('temp')->path($qr_name)
+        );
+
+      //QR en consulta
+      $this->fpdf->Image(Storage::disk('temp')->path($qr_name), $x, $y, 50);
+
+
+      $filename = public_path('..') . "/storage/app/private/temp/" . $title . ".pdf";
+      $this->fpdf->Output($filename, 'F');
+      $pdf = file_get_contents($filename);
+      $pdf64 = base64_encode($pdf);
+
+      // Storage::disk('temp')->delete($title . ".pdf");
+
+      $data = new \stdClass;
+      $data->pdf64 = $pdf64;
       $data->path = $filename;
 
       return $filename;

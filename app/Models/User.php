@@ -32,6 +32,14 @@ class User extends Authenticatable {
     return Validator::make($data, $rules, $msgs);
   }
 
+  public static function validCurp($data, $id) {
+    $rules = ['curp' => 'required|string|min:17|max:18|unique:users,curp,' . $id];
+
+    $msgs = ['curp.unique' => 'La CURP ya ha sido registrado'];
+
+    return Validator::make($data, $rules, $msgs);
+  }
+
   static public function getUiid($id) {
     return 'U-' . str_pad($id, 3, '0', STR_PAD_LEFT);
   }

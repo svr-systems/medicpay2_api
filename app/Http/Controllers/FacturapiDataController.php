@@ -13,6 +13,18 @@ use stdClass;
 use Throwable;
 
 class FacturapiDataController extends Controller {
+
+  public function index(Request $req) {
+    try {
+      return $this->apiRsp(
+        200,
+        'Registros retornados correctamente',
+        ['item' => FacturapiData::getItem($req)]
+      );
+    } catch (Throwable $err) {
+      return $this->apiRsp(500, null, $err);
+    }
+  }
   public static function errMsg($err) {
     $err_str = $err->getMessage();
     $err_str = (array) json_decode(substr($err_str, strpos($err_str, '{'), strpos($err_str, '}')), true);
@@ -77,56 +89,82 @@ class FacturapiDataController extends Controller {
       $rsp->msg = null;
       $rsp->err = null;
 
-      $item = UserFiscalData::getDataByUser($req->user_id);
+      $item = UserFiscalData::getDataByUser($req->user()->id);
 
-      $organization_id = $req->organization;
+      $facturapi_data = FacturapiData::getItemByUserFiscalData($item->id);
+      $organization_id = null;
+      if ($facturapi_data) {
+        $organization_id = $facturapi_data->organization;
+      }
+
       if (!$organization_id) {
-        $organization = $fapi->Organizations->create(array(
-          'name' => $item->uiid
-        ));
+        try {
+          $organization = $fapi->Organizations->create(array(
+            'name' => $item->uiid
+          ));
 
-        $rsp->fiscal_organization = $organization->id;
+          $rsp->fiscal_organization = $organization->id;
 
-        $organization = $fapi->Organizations->updateCustomization(
-          $rsp->fiscal_organization,
-          [
-            'pdf_extra' => [
-              'round_unit_price' => true,
-              "tax_breakdown" => false,
-              "ieps_breakdown" => false
-            ]
-          ],
-        );
-        $organization_id = $organization->id;
+          $organization = $fapi->Organizations->updateCustomization(
+            $rsp->fiscal_organization,
+            [
+              'pdf_extra' => [
+                'round_unit_price' => true,
+                "tax_breakdown" => false,
+                "ieps_breakdown" => false
+              ]
+            ],
+          );
+          $organization_id = $organization->id;
+        } catch (Throwable $err) {
+          DB::rollback();
+          return $this->apiRsp(422, FacturapiDataController::errMsg($err));
+        }
       }
 
       $fiscal_regime = FiscalRegime::find($item->fiscal_regime_id, ['code']);
-
-      $organization = $fapi->Organizations->updateLegal(
-        $organization_id, [
-          'name' => $item->uiid,
-          'legal_name' => $item->name,
-          'tax_system' => $fiscal_regime->code,
-          'address' => [
-            'zip' => $item->zip,
-            'street' => '-',
-            'exterior' => '-',
+      try {
+        $organization = $fapi->Organizations->updateLegal(
+          $organization_id, [
+            'name' => $item->uiid,
+            'legal_name' => $item->name,
+            'tax_system' => $fiscal_regime->code,
+            'address' => [
+              'zip' => $item->zip,
+              'street' => '-',
+              'exterior' => '-',
+            ]
           ]
-        ]
-      );
+        );
+      } catch (Throwable $err) {
+        DB::rollback();
+        return $this->apiRsp(422, FacturapiDataController::errMsg($err));
+      }
+      try {
+        
+        $content = \file_get_contents(storage_path('app/svr.cer'));
+        $is_value_found = strpos($content, $item->name);
+        if (!$is_value_found) {
+          return $this->apiRsp(422, 'La razón social no coincide con el archivo cargado');
+        } 
 
-      $rsp->organization = $organization;
+        $is_value_found = strpos($content, $item->code);
+        if (!$is_value_found) {
+          return $this->apiRsp(422, 'El RFC social no coincide con el archivo cargado');
+        } 
 
-      // $organization = $fapi->Organizations->uploadCertificate(
-      //   $organization_id,
-      //   [
-      //     'cerFile' => $req->cer_doc,
-      //     'keyFile' => $req->key_doc,
-      //     'password' => $req->password,
-      //   ],
-      // );
-
-      $facturapi_data = FacturapiData::getItemByUserFiscalData($item->id);
+        $organization = $fapi->Organizations->uploadCertificate(
+          $organization_id,
+          [
+            'cerFile' => $req->cer_doc,
+            'keyFile' => $req->key_doc,
+            'password' => $req->password,
+          ],
+        );
+      } catch (Throwable $err) {
+        DB::rollback();
+        return $this->apiRsp(422, FacturapiDataController::errMsg($err));
+      }
 
       if (!$facturapi_data) {
         $facturapi_data = new FacturapiData;
@@ -136,12 +174,12 @@ class FacturapiDataController extends Controller {
       $facturapi_data->updated_by_id = $req->user()->id;
       $facturapi_data->user_fiscal_data_id = $item->id;
       $facturapi_data->organization = $organization_id;
-      // $facturapi_data->certificate_updated_at = Carbon::parse($organization->certificate->updated_at)->format('Y-m-d H:i:s');
-      // $facturapi_data->certificate_expires_at = Carbon::parse($organization->certificate->expires_at)->format('Y-m-d H:i:s');
-      // $facturapi_data->certificate_serial_number = $organization->certificate->serial_number;
-      $facturapi_data->certificate_updated_at = date('Y-m-d H:i:s');
-      $facturapi_data->certificate_expires_at = date('Y-m-d H:i:s');
-      $facturapi_data->certificate_serial_number = "-------";
+      $facturapi_data->certificate_updated_at = Carbon::parse($organization->certificate->updated_at)->format('Y-m-d H:i:s');
+      $facturapi_data->certificate_expires_at = Carbon::parse($organization->certificate->expires_at)->format('Y-m-d H:i:s');
+      $facturapi_data->certificate_serial_number = $organization->certificate->serial_number;
+      // $facturapi_data->certificate_updated_at = date('Y-m-d H:i:s');
+      // $facturapi_data->certificate_expires_at = date('Y-m-d H:i:s');
+      // $facturapi_data->certificate_serial_number = "-------";
 
       $facturapi_data->save();
       DB::commit();

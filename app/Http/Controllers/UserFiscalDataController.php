@@ -13,7 +13,7 @@ class UserFiscalDataController extends Controller {
       return $this->apiRsp(
         200,
         'Registros retornados correctamente',
-        ['items' => UserFiscalData::getItems($req)]
+        ['item' => UserFiscalData::getItems($req)]
       );
     } catch (Throwable $err) {
       return $this->apiRsp(500, null, $err);
@@ -82,7 +82,7 @@ class UserFiscalDataController extends Controller {
   }
 
   public function store(Request $req) {
-    return $this->storeUpdate($req, null);
+    return $this->storeUpdate($req, $req->id);
   }
 
   public function update(Request $req, $id) {
@@ -128,7 +128,7 @@ class UserFiscalDataController extends Controller {
   }
 
   public static function saveItem($item, $data) {
-    $item->user_id = GenController::filter($data->user_id, 'id');
+    $item->user_id = $data->user()->id;
     $item->code = GenController::filter($data->code, 'U');
     $item->name = GenController::filter($data->name, 'U');
     $item->zip = GenController::filter($data->zip, 'U');

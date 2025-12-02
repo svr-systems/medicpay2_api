@@ -138,7 +138,7 @@ class DoctorController extends Controller {
       $item->hospital_id = $hospital->id;
       $item->save();
 
-      $this->saveItem($item,$req);
+      $this->saveItem($item, $req);
 
       DB::commit();
       return $this->apiRsp(
@@ -166,7 +166,8 @@ class DoctorController extends Controller {
         $doctor_specialty_item->is_active = GenController::filter($doctor_specialty['is_active'], 'b');
         $doctor_specialty_item->doctor_id = $item->id;
         $doctor_specialty_item->specialty_id = GenController::filter($doctor_specialty['specialty_id'], 'id');
-        $doctor_specialty_item->license = "---";
+        $doctor_specialty_item->license = GenController::filter($doctor_specialty['license'], 'U');
+        ;
 
         // $doctor_specialty_item->license = DocMgrController::save(
         //   $data->license,
@@ -178,6 +179,51 @@ class DoctorController extends Controller {
 
         $doctor_specialty_item->save();
       }
+    }
+  }
+
+  public function publicStore(Request $req) {
+    DB::beginTransaction();
+    try {
+      $req->user = json_encode($req->user);
+      $user_data = json_decode($req->user);
+      $user_data->role_id = 3;
+      $email = GenController::filter($user_data->email, 'l');
+
+      $valid = User::validEmail(['email' => $email], $user_data->id);
+      if ($valid->fails()) {
+        return $this->apiRsp(422, $valid->errors()->first());
+      }
+
+      $valid = User::valid((array) $user_data);
+      if ($valid->fails()) {
+        return $this->apiRsp(422, $valid->errors()->first());
+      }
+
+      $user = new User;
+      $item = new Doctor;
+
+      $user = UserController::saveItem($user, $user_data);
+
+      $req->hospital = json_encode($req->hospital);
+      $hospital = json_decode($req->hospital);
+      $hospital = Hospital::getItemBySubdomain($hospital->subdomain);
+
+      $item->user_id = $user->id;
+      $item->hospital_id = $hospital->id;
+      $item->save();
+
+      $this->saveItem($item, $req);
+
+      DB::commit();
+      return $this->apiRsp(
+        200,
+        'Registro agregado correctamente',
+        ['item' => ['id' => $item->id]]
+      );
+    } catch (Throwable $err) {
+      DB::rollback();
+      return $this->apiRsp(500, null, $err);
     }
   }
 }

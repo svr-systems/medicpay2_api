@@ -21,7 +21,6 @@ class UserFiscalData extends Model {
 
   public static function valid($data) {
     $rules = [
-      'user_id' => 'required|numeric',
       'code' => 'required|string|min:2|max:13',
       'name' => 'required|string|min:2|max:75',
       'zip' => 'required|string|min:2|max:5',
@@ -34,31 +33,33 @@ class UserFiscalData extends Model {
   }
 
   static public function getUiid($id) {
-    return 'UFD-' . str_pad($id, 3, '0', STR_PAD_LEFT);
+    return 'DF-' . str_pad($id, 3, '0', STR_PAD_LEFT);
   }
 
   static public function getItems($req) {
-    $items = UserFiscalData::
-      where('is_active', boolval($req->is_active));
+    $item = UserFiscalData::where('user_id', $req->user()->id)->
+      first(['id', 'code', 'name', 'zip', 'fiscal_regime_id']);
 
-    $items = $items->
-      orderBy('name')->
-      get([
-        'id',
-        'is_active',
-        'user_id',
-        'code',
-        'name',
-        'zip',
-        'fiscal_regime_id'
-      ]);
-
-    foreach ($items as $key => $item) {
-      $item->key = $key;
+    if ($item) {
       $item->uiid = UserFiscalData::getUiid($item->id);
+      $item->fiscal_regime = FiscalRegime::find($item->fiscal_regime_id,['id','name','code']);
+    }else{
+      $item = new \stdClass;
+
+      $item->id = '';
+      $item->is_active = true;
+      $item->code = '';
+      $item->name = '';
+      $item->zip = '';
+      $item->uiid = 'SIN REGISTRO';
+      $item->fiscal_regime_id = '';
+      $item->fiscal_regime = new \stdClass;
+      $item->fiscal_regime->id = '';
+      $item->fiscal_regime->name = '';
+      $item->fiscal_regime->code = '';
     }
 
-    return $items;
+    return $item;
   }
 
   static public function getItem($req, $id) {
@@ -73,8 +74,7 @@ class UserFiscalData extends Model {
   }
 
   static public function getDataByUser($user_id) {
-    $item = UserFiscalData::where("user_id",$user_id)->
-      where('is_active',true)->
+    $item = UserFiscalData::where("user_id", $user_id)->
       first();
 
     $item->uiid = UserFiscalData::getUiid($item->id);

@@ -55,11 +55,18 @@ class Doctor extends Model {
 
       $item->doctor_specialties = DoctorSpecialty::where('is_active', true)->where('Doctor_id', $item->id)->get();
       foreach ($item->doctor_specialties as $key => $doctor_specialty) {
-        $doctor_specialty->license_b64 = DocMgrController::getB64($doctor_specialty->license, 'DoctorSpecialty');
-        $doctor_specialty->license_doc = null;
-        $doctor_specialty->license_dlt = false;
+        $doctor_specialty->specialty = Specialty::find($doctor_specialty->specialty_id);
       }
     }
+
+    return $item;
+  }
+
+  static public function getItemByUserId($user_id){
+    $item = Doctor::where('user_id',$user_id)
+      ->first();
+
+    $item->user = User::find($user_id);
 
     return $item;
   }
