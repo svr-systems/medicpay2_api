@@ -139,6 +139,7 @@ class Consultation extends Model {
   static public function getEmailData($item, $doctor) {
     $email_data = new \stdClass;
 
+    $email_data->consultation_id = $item->id;
     $email_data->uiid = $item->uiid;
     $email_data->folio = ConsultationController::getConsultationFolio($item);
     $email_data->date = $item->created_at;

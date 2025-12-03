@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\ConsultationController;
+use App\Http\Controllers\ConsultationTransactionController;
 use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\DoctorSpecialtyController;
 use App\Http\Controllers\FacturapiDataController;
@@ -34,6 +35,7 @@ Route::group(['prefix' => 'public'], function () {
       Route::get('{id}', [UserController::class, 'getItemAccountConfirm']);
     });
   });
+  Route::post('consultations/transactions', [ConsultationTransactionController::class, 'store']);
   Route::get('consultation/info', [ConsultationController::class, 'getInfo']);
   Route::post('doctors', [DoctorController::class, 'publicStore']);
   Route::get('catalogs/specialties', [SpecialtyController::class, 'index']);
@@ -47,9 +49,16 @@ Route::group(['middleware' => 'auth:api'], function () {
   Route::post('/catalogs/specialties/restore', [SpecialtyController::class, 'restore']);
   Route::get('/catalogs/{catalog}', [CatalogController::class, 'index']);
 
+
   //Consultations
   Route::group(['prefix' => 'consultations'], function () {
     Route::post('restore', [ConsultationController::class, 'restore']);
+
+    //Consultation transactions
+    Route::group(['prefix' => 'transactions'], function () {
+      Route::post('restore', [ConsultationTransactionController::class, 'restore']);
+    });
+    Route::apiResource('transactions', ConsultationTransactionController::class);
   });
   Route::apiResource('consultations', ConsultationController::class);
 
