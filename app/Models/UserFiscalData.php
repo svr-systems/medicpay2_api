@@ -36,8 +36,8 @@ class UserFiscalData extends Model {
     return 'DF-' . str_pad($id, 3, '0', STR_PAD_LEFT);
   }
 
-  static public function getItems($req) {
-    $item = UserFiscalData::where('user_id', $req->user()->id)->
+  static public function getItem($user_id) {
+    $item = UserFiscalData::where('user_id', $user_id)->
       first(['id', 'code', 'name', 'zip', 'fiscal_regime_id']);
 
     if ($item) {
@@ -62,16 +62,16 @@ class UserFiscalData extends Model {
     return $item;
   }
 
-  static public function getItem($req, $id) {
-    $item = UserFiscalData::find($id);
+  // static public function getItem($req, $id) {
+  //   $item = UserFiscalData::find($id);
 
-    $item->uiid = UserFiscalData::getUiid($item->id);
-    $item->created_by = User::find($item->created_by_id, ['email']);
-    $item->updated_by = User::find($item->updated_by_id, ['email']);
-    $item->fiscal_regime = FiscalRegime::find($item->fiscal_regime_id);
+  //   $item->uiid = UserFiscalData::getUiid($item->id);
+  //   $item->created_by = User::find($item->created_by_id, ['email']);
+  //   $item->updated_by = User::find($item->updated_by_id, ['email']);
+  //   $item->fiscal_regime = FiscalRegime::find($item->fiscal_regime_id);
 
-    return $item;
-  }
+  //   return $item;
+  // }
 
   static public function getDataByUser($user_id) {
     $item = UserFiscalData::where("user_id", $user_id)->

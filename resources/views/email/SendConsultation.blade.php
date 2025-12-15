@@ -11,5 +11,10 @@
       <strong>Paciente: </strong> {{ $data->patient }} <br>
       <strong>Monto: </strong> ${{ $data->charge_amount }} MXN <br>
     </p>
+    <p class="text">
+      <a href="{{ $data->link }}" class="button button_success" style="color: white; text-decoration: none;">
+      Quiero pagar en línea
+    </a>
+    </p>
   </div>
 @endsection

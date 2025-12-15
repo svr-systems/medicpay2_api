@@ -6,30 +6,25 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
   public function up(): void {
-    Schema::create('consultation_transactions', function (Blueprint $table) {
+    Schema::create('transactions', function (Blueprint $table) {
       $table->id();
       $table->boolean('is_active')->default(true);
       $table->timestamps();
-      $table->foreignId('created_by_id')->constrained('users');
-      $table->foreignId('updated_by_id')->constrained('users');
       $table->foreignId('consultation_id')->constrained('consultations');
-      $table->string('status', 20);
-      $table->string('merchant', 10);
-      $table->string('affiliation', 15);
-      $table->string('transaction_type', 25);
+      $table->boolean('status');
       $table->string('card_number', 20);
-      $table->string('bank_code', 10);
-      $table->string('card_product', 5);
+      $table->foreignId('bank_type_id')->constrained('bank_types');
+      $table->foreignId('payment_form_id')->constrained('payment_forms');
       $table->string('authorization_code', 20);
-      $table->string('reading_mode', 5);
-      $table->string('arqc', 20);
-      $table->string('aid', 20);
-      $table->string('financial_reference', 20);
-      $table->string('terminal_number', 10);
-      $table->string('transaction_sequence', 20);
+      $table->string('reading_mode', 5)->nullable();
+      $table->string('arqc', 20)->nullable();
+      $table->string('aid', 20)->nullable();
+      $table->string('financial_reference', 20)->nullable();
+      $table->string('terminal_number', 10)->nullable();
+      $table->string('transaction_sequence', 20)->nullable();
       $table->string('cardholder_name', 100);
-      $table->string('legend', 255);
-      $table->string('response_code', 5);
+      $table->text('error_message')->nullable();
+      $table->string('response_code', 5)->nullable();
       $table->boolean('is_points_used')->default(false);
       $table->decimal('points_redeemed', 11, 2)->nullable()->default(null);
       $table->decimal('amount_redeemed', 11, 2)->nullable()->default(null);
@@ -37,12 +32,12 @@ return new class extends Migration {
       $table->decimal('previous_balance_points', 11, 2)->nullable()->default(null);
       $table->decimal('current_balance_amount', 11, 2)->nullable()->default(null);
       $table->decimal('current_balance_points', 11, 2)->nullable()->default(null);
-      $table->boolean('is_credit')->default(false);
-
+      $table->dateTime('operation_date');
+      $table->string('payment_id', 25)->nullable()->default(null);
     });
   }
 
   public function down(): void {
-    Schema::dropIfExists('consultation_transactions');
+    Schema::dropIfExists('transactions');
   }
 };

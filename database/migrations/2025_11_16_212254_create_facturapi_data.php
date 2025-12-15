@@ -13,7 +13,7 @@ return new class extends Migration {
       $table->foreignId('created_by_id')->constrained('users');
       $table->foreignId('updated_by_id')->constrained('users');
       $table->foreignId('user_fiscal_data_id')->constrained('user_fiscal_data')->unique();
-      $table->string('organization', 25);
+      $table->string('organization_id', 25);
       $table->dateTime('certificate_updated_at');
       $table->dateTime('certificate_expires_at');
       $table->string('certificate_serial_number', 50);

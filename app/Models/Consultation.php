@@ -121,7 +121,9 @@ class Consultation extends Model {
         'created_at',
         'patient_id',
         'charge_amount',
-        'doctor_id'
+        'doctor_id',
+        'transaction_id',
+        'invoice_id'
       ]);
 
     if ($item) {
@@ -129,9 +131,16 @@ class Consultation extends Model {
       $item->patient = Patient::getItem(null, $item->patient_id);
 
       $doctor = Doctor::getItem(null, $item->doctor_id);
-      $email_data = Consultation::getEmailData($item, $doctor);
+      if ($item->transaction_id === null || $item->invoice_id === null) {
+        $email_data = Consultation::getEmailData($item, $doctor);
+        return $email_data;
+      } else {
+        $paid_info = new \stdClass;
+        $paid_info->is_paid = ($item->transaction_id) ? true : false;
+        $paid_info->is_stamped = ($item->invoice_id) ? true : false;
 
-      return $email_data;
+        return $paid_info;
+      }
     }
     return $item;
   }
@@ -146,7 +155,49 @@ class Consultation extends Model {
     $email_data->doctor = GenController::getFullName($doctor->user);
     $email_data->patient = GenController::getFullName($item->patient->user);
     $email_data->charge_amount = $item->charge_amount;
+    $email_data->is_paid = ($item->transaction_id) ? true : false;
+    $email_data->is_stamped = ($item->invoice_id) ? true : false;
 
     return $email_data;
+  }
+
+  static public function getGeneral($id) {
+    $item = Consultation::where('id', $id)->
+      first([
+        'id',
+        'is_active',
+        'patient_id',
+        'consultation_amount'
+      ]);
+
+    $item->uiid = Consultation::getUiid($item->id);
+    $item->created_by = User::find($item->created_by_id, ['email']);
+    $item->updated_by = User::find($item->updated_by_id, ['email']);
+    $item->patient = Patient::getItem(null, $item->patient_id);
+
+    return $item;
+  }
+
+  static public function getItemById($id) {
+
+    $item = Consultation::where('id', $id)->
+      first([
+        'id',
+        'is_active',
+        'patient_id',
+        'doctor_id',
+        'consultation_amount',
+        'created_at',
+        'charge_amount',
+        'transaction_id',
+        'invoice_id'
+      ]);
+
+    $item->uiid = Consultation::getUiid($item->id);
+    $item->created_by = User::find($item->created_by_id, ['email']);
+    $item->updated_by = User::find($item->updated_by_id, ['email']);
+    $item->patient = Patient::getItem(null, $item->patient_id);
+
+    return $item;
   }
 }

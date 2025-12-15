@@ -3,13 +3,13 @@
 namespace App\Http\Controllers;
 use App\Mail\GenAttachmentMailable;
 use App\Mail\GenMailable;
+use App\Mail\InvoiceAttachmentMailable;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Crypt;
 
 use Illuminate\Http\Request;
 
-class EmailController extends Controller
-{
+class EmailController extends Controller {
   public static function userAccountConfirmation($email, $data) {
     $email = GenController::isAppDebug() ? env('MAIL_DEBUG') : env('MAIL_DEBUG');
 
@@ -63,17 +63,31 @@ class EmailController extends Controller
 
   public static function sendTicket($email, $data, $file_path) {
     $email = GenController::isAppDebug() ? env('MAIL_DEBUG') : $email;
+    $data->link = (GenController::isAppDebug() ? env('SERVER_DEBUG') : env('SERVER')) .
+      '/facturacion/' .
+      Crypt::encryptString($data->consultation_id);
 
     if (!GenController::empty($email)) {
-      Mail::to($email)->send(new GenAttachmentMailable($data, 'Ticket', 'SendTicket',$file_path));
+      Mail::to($email)->send(new GenAttachmentMailable($data, 'Ticket', 'SendTicket', $file_path));
     }
   }
 
   public static function sendConsultation($email, $data, $file_path) {
     $email = GenController::isAppDebug() ? env('MAIL_DEBUG') : $email;
+    $data->link = (GenController::isAppDebug() ? env('SERVER_DEBUG') : env('SERVER')) .
+      '/pagoConsulta/' .
+      Crypt::encryptString($data->consultation_id);
 
     if (!GenController::empty($email)) {
-      Mail::to($email)->send(new GenAttachmentMailable($data, 'Consulta', 'SendConsultation',$file_path));
+      Mail::to($email)->send(new GenAttachmentMailable($data, 'Consulta', 'SendConsultation', $file_path));
+    }
+  }
+
+  public static function sendInvoiceFiles($email, $data, $file_path_xml, $file_path_pdf) {
+    $email = GenController::isAppDebug() ? env('MAIL_DEBUG') : $email;
+
+    if (!GenController::empty($email)) {
+      Mail::to($email)->send(new InvoiceAttachmentMailable($data, 'Facturación', 'SendInvoice', $file_path_xml, $file_path_pdf));
     }
   }
 }

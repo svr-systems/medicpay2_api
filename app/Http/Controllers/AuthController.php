@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Role;
+use App\Models\UserBankData;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Throwable;
@@ -25,13 +27,21 @@ class AuthController extends Controller {
         return $this->apiRsp(422, 'Datos de acceso inválidos', null);
       }
 
+      $user = User::find(Auth::id());
+      $user->role = Role::find($user->role_id,['name']);
+
+      // if($user->role_id === 3){
+        $user_bank_data = UserBankData::where('is_active', true)->where('user_id',$user->id)->first();
+        $user->is_valid_doctor = $user_bank_data->is_valid;
+      // }
+
       return $this->apiRsp(
         200,
         'Datos de acceso validos',
         [
           'auth' => [
             'token' => Auth::user()->createToken('passportToken')->accessToken,
-            'user' => User::find(Auth::id())
+            'user' => $user
           ]
         ]
       );

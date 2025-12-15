@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
         // $this->call(StateSeeder::class);
         // $this->call(MunicipalitiesSeeder::class);
         // $this->call(FiscalRegimeSeeder::class);
-        $this->call(BankTypeSeeder::class);
+        // $this->call(BankTypeSeeder::class);
+        // $this->call(PaymentFormsSeeder::class);
     }
 }

@@ -10,8 +10,8 @@ return new class extends Migration {
       $table->id();
       $table->boolean('is_active')->default(true);
       $table->timestamps();
-      $table->foreignId('created_by_id')->constrained('users');
-      $table->foreignId('updated_by_id')->constrained('users');
+      $table->foreignId('created_by_id')->constrained('users')->nullable();
+      $table->foreignId('updated_by_id')->constrained('users')->nullable();
       $table->foreignId('user_id')->constrained('users')->unique();
       $table->string('code', 13);
       $table->string('name', 75);

@@ -3,11 +3,13 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\ConsultationController;
-use App\Http\Controllers\ConsultationTransactionController;
+use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\DoctorSpecialtyController;
+use App\Http\Controllers\FacturapiController;
 use App\Http\Controllers\FacturapiDataController;
 use App\Http\Controllers\HospitalController;
+use App\Http\Controllers\OpenpayController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\SpecialtyController;
 use App\Http\Controllers\TicketController;
@@ -17,8 +19,6 @@ use App\Http\Controllers\UserFiscalDataController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('login', [AuthController::class, 'login']);
-
-Route::post('ticket/email', [TicketController::class, 'sendTicket']);
 
 Route::group(['prefix' => 'public'], function () {
   Route::group(['prefix' => 'users'], function () {
@@ -35,10 +35,19 @@ Route::group(['prefix' => 'public'], function () {
       Route::get('{id}', [UserController::class, 'getItemAccountConfirm']);
     });
   });
-  Route::post('consultations/transactions', [ConsultationTransactionController::class, 'store']);
+  Route::group(['prefix' => 'user_fiscal_data'], function () {
+    Route::get('{consultation_id}', [UserFiscalDataController::class, 'getFiscalDataByConsultation']);
+    Route::post('{consultation_id}', [UserFiscalDataController::class, 'setFiscalDataByConsultation']);
+  });
+  Route::post('consultation/doctor/stamp/{consultation_id}', [FacturapiController::class, 'doctorConsultationStamp']);
+  Route::post('consultation/payment/card', [OpenpayController::class, 'paymentCard']);
+  Route::post('consultations/invoce/stamp', [FacturapiController::class, 'patientConsultationStamp']);
+  Route::post('consultations/transactions', [TransactionController::class, 'store']);
   Route::get('consultation/info', [ConsultationController::class, 'getInfo']);
   Route::post('doctors', [DoctorController::class, 'publicStore']);
   Route::get('catalogs/specialties', [SpecialtyController::class, 'index']);
+  Route::get('catalogs/{catalog}', [CatalogController::class, 'public']);
+  Route::post('ticket/email', [TicketController::class, 'sendTicket']);
 });
 
 Route::group(['middleware' => 'auth:api'], function () {
@@ -56,9 +65,9 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     //Consultation transactions
     Route::group(['prefix' => 'transactions'], function () {
-      Route::post('restore', [ConsultationTransactionController::class, 'restore']);
+      Route::post('restore', [TransactionController::class, 'restore']);
     });
-    Route::apiResource('transactions', ConsultationTransactionController::class);
+    Route::apiResource('transactions', TransactionController::class);
   });
   Route::apiResource('consultations', ConsultationController::class);
 
