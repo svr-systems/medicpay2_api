@@ -1,7 +1,7 @@
 <div class="contact">
   <p>
-    Siéntete libre de contactarnos para cualquier duda o aclaración a
+    ¿Dudas o aclaraciones? Contáctanos en:
     <br>
-    <a href="mailto:contacto@solmetec.mx" target="_blank" style="color: inherit">contacto@solmetec.mx</a>
+    <a href="mailto:contacto@medicpay.mx" target="_blank" style="color: inherit">contacto@medicpay.mx</a>
   </p>
 </div>

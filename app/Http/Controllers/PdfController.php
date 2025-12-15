@@ -8,9 +8,11 @@ use Illuminate\Http\Request;
 use Codedge\Fpdf\Fpdf\Fpdf;
 use Storage;
 
-class PdfController extends Controller {
+class PdfController extends Controller
+{
   private $fpdf;
-  public function ticket($req) {
+  public function ticket($req)
+  {
     try {
       if (isset($req->points_redeemed)) {
         $document_type = 2;
@@ -460,7 +462,8 @@ class PdfController extends Controller {
     }
   }
 
-  public function ticketOnlinePayment($req) {
+  public function ticketOnlinePayment($req)
+  {
     try {
 
       $this->fpdf = new Fpdf;
@@ -593,109 +596,103 @@ class PdfController extends Controller {
       ], 200);
     }
   }
-  public function consultation($data) {
+
+  public function consultation($data)
+  {
+    $pdf = null;
+    $qr_path = null;
+
     try {
-      $this->fpdf = new Fpdf;
-      $this->fpdf->AddPage();
+      $page_width = 80;
+      $page_height = 160;
 
-      $x = 15;
-      $y = 15;
-      $this->fpdf->SetFont('times', 'B', 18);
+      $pdf = new Fpdf('P', 'mm', [$page_width, $page_height]);
+      $pdf->SetAutoPageBreak(true, 6);
+      $pdf->SetMargins(6, 10, 6);
+      $pdf->AddPage();
 
-      $this->fpdf->SetFillColor(240, 240, 240);
-      $this->fpdf->SetDrawColor(128, 128, 128);
-      $this->fpdf->MultiCell(190, 178, '', 1, 'J', 1);
+      $logo_w = 30;
+      $logo_h = 7;
+      $logo_x = ($pdf->GetPageWidth() - $logo_w) / 2;
 
-      $this->fpdf->Image(Storage::disk('public')->path('logo-negro.png'), 90, $y, 30, 7, 'png');
+      $pdf->Image(
+        Storage::disk('public')->path('logo-negro.png'),
+        $logo_x,
+        $pdf->GetY(),
+        $logo_w,
+        $logo_h,
+        'png'
+      );
 
-      $y += 10;
+      $pdf->Ln(14);
 
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(180, 5, utf8_decode('C   O   N   S   U   L   T   A'), 0, 0, 'C');
-      $y += 10;
+      $this->pdfCenter($pdf, 'C O N S U L T A', 8, 'times', 'B', 13);
+      $pdf->Ln(4);
 
-      $y_back = $y;
-      $this->fpdf->SetFont('times', 'B', 12);
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(180, 5, utf8_decode('ID: '), 0, 0, 'C');
-      $y += 14;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(180, 5, utf8_decode('Folio: '), 0, 0, 'C');
-      $y += 14;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(180, 5, utf8_decode('Fecha y hora: '), 0, 0, 'C');
-      $y += 14;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(180, 5, utf8_decode('Médico: '), 0, 0, 'C');
-      $y += 14;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(180, 5, utf8_decode('Paciente: '), 0, 0, 'C');
-      $y += 14;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(180, 5, utf8_decode('Monto: '), 0, 0, 'C');
-      $y += 14;
+      $this->pdfKv($pdf, 'Folio:', (string) $data->folio, 6, 11, 11);
+      $pdf->Ln(2);
 
-      $y = $y_back + 7;
-      // $x = 20;
-      $this->fpdf->SetFont('times', '', 10);
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(180, 5, utf8_decode($data->uiid), 0, 0, 'C');
-      $y += 14;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(180, 5, utf8_decode($data->folio), 0, 0, 'C');
-      $y += 14;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(180, 5, utf8_decode($data->date), 0, 0, 'C');
-      $y += 14;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(180, 5, utf8_decode($data->doctor), 0, 0, 'C');
-      $y += 14;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(180, 5, utf8_decode($data->patient), 0, 0, 'C');
-      $y += 14;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(180, 5, utf8_decode('$' . GenController::moneyFormat($data->charge_amount) . ' MXN'), 0, 0, 'C');
-      $y += 20;
-      $x = 80;
+      $this->pdfKv($pdf, 'Monto:', '$' . GenController::moneyFormat($data->charge_amount) . ' MXN', 6, 11, 11);
+      $pdf->Ln(4);
 
-      $title = "Consultation - " . time();
+      $this->pdfKv($pdf, 'ID:', (string) $data->uiid, 5, 10, 9);
+      $this->pdfKv($pdf, 'Fecha:', (string) $data->date, 5, 10, 9);
+      $this->pdfKv($pdf, 'Médico:', (string) $data->doctor, 5, 10, 9);
 
-      $folio_encripted = Crypt::encryptString($data->folio);
+      $pdf->Ln(6);
+
+      $title = 'consultation_' . time();
+      $folio_encrypted = Crypt::encryptString((string) $data->folio);
 
       $qr_name = 'user_qr_' . $title . '.png';
+      $qr_path = Storage::disk('temp')->path($qr_name);
+
       \QrCode::format('png')
         ->size(512)
-        ->generate(
-          $folio_encripted,
-          Storage::disk('temp')->path($qr_name)
-        );
+        ->generate($folio_encrypted, $qr_path);
 
-      //QR en consulta
-      $this->fpdf->Image(Storage::disk('temp')->path($qr_name), $x, $y, 50);
+      $qr_w = 46;
+      $qr_x = ($pdf->GetPageWidth() - $qr_w) / 2;
 
+      $pdf->Image($qr_path, $qr_x, $pdf->GetY(), $qr_w, 0, 'png');
 
-      $filename = public_path('..') . "/storage/app/private/temp/" . $title . ".pdf";
-      $this->fpdf->Output($filename, 'F');
-      $pdf = file_get_contents($filename);
-      $pdf64 = base64_encode($pdf);
+      $filename = public_path('..') . "/storage/app/private/temp/{$title}.pdf";
+      $pdf->Output($filename, 'F');
 
-      // Storage::disk('temp')->delete($title . ".pdf");
-
-      $data = new \stdClass;
-      $data->pdf64 = $pdf64;
-      $data->path = $filename;
+      if (is_file($qr_path)) {
+        @unlink($qr_path);
+      }
 
       return $filename;
-
-      // return response($this->fpdf->Output('S'))
-      //   ->header('Content-Type', 'application/pdf')
-      //   ->header('Content-Disposition', 'inline; filename="' . $title . '.pdf"');
-
     } catch (\Throwable $th) {
-      return response()->json([
-        "success" => false,
-        "message" => "ERR. " . $th
-      ], 200);
+      if ($qr_path && is_file($qr_path)) {
+        @unlink($qr_path);
+      }
+
+      return apiRsp(false, 'ERR.', collect([
+        'error' => $th->getMessage(),
+      ]));
     }
+  }
+
+  private function pdfCenter(Fpdf $pdf, string $text, float $h = 6, string $font = 'times', string $style = '', int $size = 11): void
+  {
+    $pdf->SetFont($font, $style, $size);
+    $pdf->Cell(0, $h, utf8_decode($text), 0, 1, 'C');
+  }
+
+  private function pdfKv(
+    Fpdf $pdf,
+    string $label,
+    string $value,
+    float $line_h = 6,
+    int $label_size = 11,
+    int $value_size = 11
+  ): void {
+    $pdf->SetFont('times', 'B', $label_size);
+    $pdf->Cell(0, $line_h, utf8_decode($label), 0, 1, 'C');
+
+    $pdf->SetFont('times', '', $value_size);
+    $pdf->MultiCell(0, $line_h, utf8_decode($value), 0, 'C');
   }
 }

@@ -8,18 +8,24 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Validator;
 
-class UserFiscalData extends Model {
+class UserFiscalData extends Model
+{
   use HasFactory;
+
   protected $table = 'user_fiscal_data';
-  protected function serializeDate(DateTimeInterface $date) {
-    return Carbon::instance($date)->toISOString(true);
+
+  protected function serializeDate(DateTimeInterface $date): string
+  {
+    return $date->format('Y-m-d H:i:s');
   }
+
   protected $casts = [
     'created_at' => 'datetime:Y-m-d H:i:s',
     'updated_at' => 'datetime:Y-m-d H:i:s',
   ];
 
-  public static function valid($data) {
+  public static function valid($data)
+  {
     $rules = [
       'code' => 'required|string|min:2|max:13',
       'name' => 'required|string|min:2|max:75',
@@ -32,18 +38,27 @@ class UserFiscalData extends Model {
     return Validator::make($data, $rules, $msgs);
   }
 
-  static public function getUiid($id) {
+  static public function getUiid($id)
+  {
     return 'DF-' . str_pad($id, 3, '0', STR_PAD_LEFT);
   }
 
-  static public function getItem($user_id) {
-    $item = UserFiscalData::where('user_id', $user_id)->
-      first(['id', 'code', 'name', 'zip', 'fiscal_regime_id']);
+  static public function getItem($user_id)
+  {
+    $item = UserFiscalData::query()
+      ->where('user_id', $user_id)
+      ->first([
+        'id',
+        'code',
+        'name',
+        'zip',
+        'fiscal_regime_id'
+      ]);
 
     if ($item) {
       $item->uiid = UserFiscalData::getUiid($item->id);
-      $item->fiscal_regime = FiscalRegime::find($item->fiscal_regime_id,['id','name','code']);
-    }else{
+      $item->fiscal_regime = FiscalRegime::find($item->fiscal_regime_id, ['id', 'name', 'code']);
+    } else {
       $item = new \stdClass;
 
       $item->id = '';
@@ -51,7 +66,7 @@ class UserFiscalData extends Model {
       $item->code = '';
       $item->name = '';
       $item->zip = '';
-      $item->uiid = 'SIN REGISTRO';
+      $item->uiid = '';
       $item->fiscal_regime_id = '';
       $item->fiscal_regime = new \stdClass;
       $item->fiscal_regime->id = '';
@@ -73,7 +88,8 @@ class UserFiscalData extends Model {
   //   return $item;
   // }
 
-  static public function getDataByUser($user_id) {
+  static public function getDataByUser($user_id)
+  {
     $item = UserFiscalData::where("user_id", $user_id)->
       first();
 

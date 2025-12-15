@@ -10,17 +10,22 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Validator;
 
-class Consultation extends Model {
+class Consultation extends Model
+{
   use HasFactory;
-  protected function serializeDate(DateTimeInterface $date) {
-    return Carbon::instance($date)->toISOString(true);
+
+  protected function serializeDate(DateTimeInterface $date): string
+  {
+    return $date->format('Y-m-d H:i:s');
   }
+
   protected $casts = [
     'created_at' => 'datetime:Y-m-d H:i:s',
     'updated_at' => 'datetime:Y-m-d H:i:s',
   ];
 
-  public static function valid($data) {
+  public static function valid($data)
+  {
     $rules = [
       'consultation_amount' => 'required|numeric',
     ];
@@ -30,38 +35,41 @@ class Consultation extends Model {
     return Validator::make($data, $rules, $msgs);
   }
 
-  static public function getUiid($id) {
+  static public function getUiid($id)
+  {
     return 'C-' . str_pad($id, 4, '0', STR_PAD_LEFT);
   }
 
-  static public function getItems($req) {
+  static public function getItems($req)
+  {
     $doctor = Doctor::where('user_id', $req->user()->id)->first();
 
-    $items = null;
-    if ($doctor) {
-      $items = Consultation::where('is_active', boolval($req->is_active))->
-        where('doctor_id', $doctor->id);
-
-      $items = $items->
-        orderBy('created_at')->
-        get([
-          'id',
-          'is_active',
-          'patient_id',
-          'consultation_amount'
-        ]);
-
-      foreach ($items as $key => $item) {
-        $item->key = $key;
-        $item->patient = Patient::getItem(null, $item->patient_id);
-        $item->uiid = Consultation::getUiid($item->id);
-      }
-
+    if (!$doctor) {
+      return null;
     }
+
+    $items = Consultation::query()
+      ->where('is_active', boolval($req->is_active))
+      ->where('doctor_id', $doctor->id)
+      ->orderBy('created_at')
+      ->get([
+        'id',
+        'is_active',
+        'patient_id',
+        'consultation_amount'
+      ]);
+
+    foreach ($items as $key => $item) {
+      $item->key = $key;
+      $item->patient = Patient::getItem(null, $item->patient_id);
+      $item->uiid = Consultation::getUiid($item->id);
+    }
+
     return $items;
   }
 
-  static public function getItem($req, $id) {
+  static public function getItem($req, $id)
+  {
     $doctor = Doctor::where('user_id', $req->user()->id)->first();
 
     $item = Consultation::where('id', $id)->
@@ -81,7 +89,8 @@ class Consultation extends Model {
     return $item;
   }
 
-  static public function getItemEmail($req, $id) {
+  static public function getItemEmail($req, $id)
+  {
     $doctor = Doctor::getItemByUserId($req->user()->id);
 
     $item = Consultation::where('id', $id)->
@@ -102,7 +111,8 @@ class Consultation extends Model {
     return $email_data;
   }
 
-  static public function getInfoByFolio($folio) {
+  static public function getInfoByFolio($folio)
+  {
     $created_at = '20' .
       substr($folio, 0, 2) . '-' .
       substr($folio, 2, 2) . '-' .
@@ -145,13 +155,14 @@ class Consultation extends Model {
     return $item;
   }
 
-  static public function getEmailData($item, $doctor) {
+  static public function getEmailData($item, $doctor)
+  {
     $email_data = new \stdClass;
 
     $email_data->consultation_id = $item->id;
     $email_data->uiid = $item->uiid;
     $email_data->folio = ConsultationController::getConsultationFolio($item);
-    $email_data->date = $item->created_at;
+    $email_data->date = Carbon::parse($item->created_at)->toDateTimeString();
     $email_data->doctor = GenController::getFullName($doctor->user);
     $email_data->patient = GenController::getFullName($item->patient->user);
     $email_data->charge_amount = $item->charge_amount;
@@ -161,7 +172,8 @@ class Consultation extends Model {
     return $email_data;
   }
 
-  static public function getGeneral($id) {
+  static public function getGeneral($id)
+  {
     $item = Consultation::where('id', $id)->
       first([
         'id',
@@ -178,7 +190,8 @@ class Consultation extends Model {
     return $item;
   }
 
-  static public function getItemById($id) {
+  static public function getItemById($id)
+  {
 
     $item = Consultation::where('id', $id)->
       first([
@@ -190,13 +203,15 @@ class Consultation extends Model {
         'created_at',
         'charge_amount',
         'transaction_id',
-        'invoice_id'
+        'invoice_id',
+        'created_at as created_at_label',
       ]);
 
     $item->uiid = Consultation::getUiid($item->id);
     $item->created_by = User::find($item->created_by_id, ['email']);
     $item->updated_by = User::find($item->updated_by_id, ['email']);
     $item->patient = Patient::getItem(null, $item->patient_id);
+    $item->created_at_label = Carbon::parse($item->created_at)->toDateTimeString();
 
     return $item;
   }

@@ -79,7 +79,7 @@ class EmailController extends Controller {
       Crypt::encryptString($data->consultation_id);
 
     if (!GenController::empty($email)) {
-      Mail::to($email)->send(new GenAttachmentMailable($data, 'Consulta', 'SendConsultation', $file_path));
+      Mail::to($email)->send(new GenAttachmentMailable($data, 'Consulta registrada', 'SendConsultation', $file_path));
     }
   }
 

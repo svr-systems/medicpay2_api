@@ -105,7 +105,7 @@ class ConsultationController extends Controller {
 
       $patient = json_encode($req->patient);
       $patient = json_decode($patient);
-      // $patient = json_decode($req->patient);
+      $patient = json_decode($req->patient);
       $user = json_encode($patient->user);
       $patient_id = $patient->id;
       $req->user = $user;

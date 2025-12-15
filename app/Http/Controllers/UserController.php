@@ -9,8 +9,10 @@ use App\Models\User;
 use DB;
 use Throwable;
 
-class UserController extends Controller {
-  public function index(Request $req) {
+class UserController extends Controller
+{
+  public function index(Request $req)
+  {
     try {
       return $this->apiRsp(
         200,
@@ -22,7 +24,8 @@ class UserController extends Controller {
     }
   }
 
-  public function show(Request $req, $id) {
+  public function show(Request $req, $id)
+  {
     try {
       return $this->apiRsp(
         200,
@@ -34,7 +37,8 @@ class UserController extends Controller {
     }
   }
 
-  public function destroy(Request $req, $id) {
+  public function destroy(Request $req, $id)
+  {
     DB::beginTransaction();
     try {
       $item = User::find($id);
@@ -59,7 +63,8 @@ class UserController extends Controller {
 
   }
 
-  public function restore(Request $req) {
+  public function restore(Request $req)
+  {
     DB::beginTransaction();
     try {
       $item = User::find($req->id);
@@ -85,15 +90,18 @@ class UserController extends Controller {
     }
   }
 
-  public function store(Request $req) {
+  public function store(Request $req)
+  {
     return $this->storeUpdate($req, null);
   }
 
-  public function update(Request $req, $id) {
+  public function update(Request $req, $id)
+  {
     return $this->storeUpdate($req, $id);
   }
 
-  public function storeUpdate($req, $id) {
+  public function storeUpdate($req, $id)
+  {
     DB::beginTransaction();
     try {
       $email_current = null;
@@ -143,7 +151,8 @@ class UserController extends Controller {
     }
   }
 
-  public static function saveItem($item, $data, $is_req = true) {
+  public static function saveItem($item, $data, $is_req = true)
+  {
     if (!$is_req) {
       $item->active = GenController::filter($data->active, 'b');
     }
@@ -155,18 +164,23 @@ class UserController extends Controller {
     $item->curp = GenController::filter($data->curp, 'U');
     $item->email = GenController::filter($data->email, 'l');
     $item->phone = GenController::filter($data->phone, 'U');
-    $item->avatar = DocMgrController::save(
-      $data->avatar,
-      DocMgrController::exist($data->avatar_doc),
-      $data->avatar_dlt,
-      'User'
-    );
+
+    if (isset($data->avatar)) {
+      $item->avatar = DocMgrController::save(
+        $data->avatar,
+        DocMgrController::exist($data->avatar_doc),
+        $data->avatar_dlt,
+        'User'
+      );
+    }
+
     $item->save();
 
     return $item;
   }
 
-  public function getItemAccountConfirm($id) {
+  public function getItemAccountConfirm($id)
+  {
     try {
       $item = User::find(Crypt::decryptString($id));
 
@@ -181,17 +195,20 @@ class UserController extends Controller {
       return $this->apiRsp(
         200,
         'Registro retornado correctamente',
-        ['item' => [
-          'email' => $item->email,
-          'role_id' => $item->role_id,
-        ]]
+        [
+          'item' => [
+            'email' => $item->email,
+            'role_id' => $item->role_id,
+          ]
+        ]
       );
     } catch (Throwable $err) {
       return $this->apiRsp(500, null, $err);
     }
   }
 
-  public function accountConfirm(Request $req, $id) {
+  public function accountConfirm(Request $req, $id)
+  {
     DB::beginTransaction();
     try {
       $valid = User::validPassword($req->all());
@@ -218,7 +235,8 @@ class UserController extends Controller {
     }
   }
 
-  public function getItemPasswordReset($id) {
+  public function getItemPasswordReset($id)
+  {
     try {
       $item = User::find(Crypt::decryptString($id));
 
@@ -234,17 +252,20 @@ class UserController extends Controller {
       return $this->apiRsp(
         200,
         'Registro retornado correctamente',
-        ['item' => [
-          'email' => $item->email,
-          'role_id' => $item->role_id,
-        ]]
+        [
+          'item' => [
+            'email' => $item->email,
+            'role_id' => $item->role_id,
+          ]
+        ]
       );
     } catch (Throwable $err) {
       return $this->apiRsp(500, null, $err);
     }
   }
 
-  public function passwordReset(Request $req, $id) {
+  public function passwordReset(Request $req, $id)
+  {
     DB::beginTransaction();
     try {
       $valid = User::validPassword($req->all());
@@ -270,7 +291,8 @@ class UserController extends Controller {
     }
   }
 
-  public function passwordRecover(Request $req) {
+  public function passwordRecover(Request $req)
+  {
     try {
       $item = User::getItemByEmail($req->email);
 
@@ -282,15 +304,11 @@ class UserController extends Controller {
         if (!$item->is_active) {
           $msg = 'Cuenta inactiva, no se puede enviar E-mail';
         } else {
-          if (is_null($item->email_verified_at)) {
-            $msg = 'Cuenta no confirmada, no se puede enviar E-mail';
-          } else {
-            if (
-              $item->password_recover_at &&
-              !Carbon::createFromFormat('Y-m-d H:i:s', $item->password_recover_at)->addMinutes(5)->isPast()
-            ) {
-              $msg = 'El E-mail de recuperación ha sido enviado, espera 5 min. para utilizar nuevamente esta acción';
-            }
+          if (
+            $item->password_recover_at &&
+            !Carbon::createFromFormat('Y-m-d H:i:s', $item->password_recover_at)->addMinutes(5)->isPast()
+          ) {
+            $msg = 'El E-mail de recuperación ha sido enviado, espera 5 min. para utilizar nuevamente esta acción';
           }
         }
       }

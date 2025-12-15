@@ -10,8 +10,10 @@ use DB;
 use Illuminate\Http\Request;
 use Throwable;
 
-class UserFiscalDataController extends Controller {
-  public function index(Request $req) {
+class UserFiscalDataController extends Controller
+{
+  public function index(Request $req)
+  {
     try {
       return $this->apiRsp(
         200,
@@ -23,7 +25,8 @@ class UserFiscalDataController extends Controller {
     }
   }
 
-  public function show(Request $req, $id) {
+  public function show(Request $req, $id)
+  {
     try {
       return $this->apiRsp(
         200,
@@ -35,7 +38,8 @@ class UserFiscalDataController extends Controller {
     }
   }
 
-  public function destroy(Request $req, $id) {
+  public function destroy(Request $req, $id)
+  {
     DB::beginTransaction();
     try {
       $item = UserFiscalData::find($id);
@@ -59,7 +63,8 @@ class UserFiscalDataController extends Controller {
     }
   }
 
-  public function restore(Request $req) {
+  public function restore(Request $req)
+  {
     DB::beginTransaction();
     try {
       $item = UserFiscalData::find($req->id);
@@ -84,22 +89,25 @@ class UserFiscalDataController extends Controller {
     }
   }
 
-  public function store(Request $req) {
+  public function store(Request $req)
+  {
     return $this->storeUpdate($req, $req->id);
   }
 
-  public function update(Request $req, $id) {
+  public function update(Request $req, $id)
+  {
     return $this->storeUpdate($req, $id);
   }
 
-  public function storeUpdate($req, $id) {
+  public function storeUpdate($req, $id)
+  {
     DB::beginTransaction();
     try {
       $valid = UserFiscalData::valid($req->all());
       if ($valid->fails()) {
         return $this->apiRsp(422, $valid->errors()->first());
       }
-      
+
       $valid = FacturapiDataController::validCustomer($req);
       if ($valid->msg !== null) {
         return $this->apiRsp(422, $valid->msg);
@@ -132,7 +140,8 @@ class UserFiscalDataController extends Controller {
     }
   }
 
-  public static function saveItem($item, $data) {
+  public static function saveItem($item, $data)
+  {
     $item->user_id = $data->user_id;
     $item->code = GenController::filter($data->code, 'U');
     $item->name = GenController::filter($data->name, 'U');
@@ -145,14 +154,15 @@ class UserFiscalDataController extends Controller {
 
 
   // PUBLIC
-  public function getFiscalDataByConsultation($consultation_id) {
+  public function getFiscalDataByConsultation($consultation_id)
+  {
     try {
       $consultation_id = Crypt::decryptString($consultation_id);
       $consultation = Consultation::getGeneral($consultation_id);
       $data = UserFiscalData::getItem($consultation->patient->user->id);
       $consultation = Consultation::getItemById($consultation_id);
-      $doctor = Doctor::getItem(null,$consultation->doctor_id);
-      $data->consultation = Consultation::getEmailData($consultation,$doctor);
+      $doctor = Doctor::getItem(null, $consultation->doctor_id);
+      $data->consultation = Consultation::getEmailData($consultation, $doctor);
       return $this->apiRsp(
         200,
         'Registros retornados correctamente',
@@ -163,7 +173,8 @@ class UserFiscalDataController extends Controller {
     }
   }
 
-  public function setFiscalDataByConsultation(Request $req, $consultation_id) {
+  public function setFiscalDataByConsultation(Request $req, $consultation_id)
+  {
     DB::beginTransaction();
     try {
       $consultation_id = Crypt::decryptString($consultation_id);
@@ -171,7 +182,7 @@ class UserFiscalDataController extends Controller {
       if ($valid->fails()) {
         return $this->apiRsp(422, $valid->errors()->first());
       }
-      
+
       $valid = FacturapiDataController::validCustomer($req);
       if ($valid->msg !== null) {
         return $this->apiRsp(422, $valid->msg);
@@ -181,8 +192,8 @@ class UserFiscalDataController extends Controller {
       $user_id = $consultation->patient->user->id;
       $user_fiscal_data = UserFiscalData::getItem($user_id);
       $req->user_id = $user_id;
-      
-      $id = GenController::filter($user_fiscal_data->id,'id');
+
+      $id = GenController::filter($user_fiscal_data->id, 'id');
 
       $store_mode = is_null($id);
 
