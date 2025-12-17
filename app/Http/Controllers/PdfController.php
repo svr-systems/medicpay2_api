@@ -8,11 +8,9 @@ use Illuminate\Http\Request;
 use Codedge\Fpdf\Fpdf\Fpdf;
 use Storage;
 
-class PdfController extends Controller
-{
+class PdfController extends Controller {
   private $fpdf;
-  public function ticket($req)
-  {
+  public function ticket($req) {
     try {
       if (isset($req->points_redeemed)) {
         $document_type = 2;
@@ -22,9 +20,6 @@ class PdfController extends Controller
         $document_type = 1;
       }
 
-      $this->fpdf = new Fpdf;
-      $this->fpdf->AddPage();
-
       switch ($req->reading_mode) {
         case '05':
           $modo_ingreso = 'I@1';
@@ -47,395 +42,111 @@ class PdfController extends Controller
         default:
           $modo_ingreso = '';
       }
-      $x = 65;
-      $y_ini = $this->fpdf->GetY() - 5;
-      $this->fpdf->SetFont('times', '', 10);
-      $this->fpdf->SetXY($x, 10);
-      $this->fpdf->Cell(80, 5, utf8_decode('BBVA'), 0, 0, 'C');
-      $y = $this->fpdf->GetY() + 5;
-      $this->fpdf->Image(Storage::disk('public')->path('logo-negro.png'), 90, $y, 30, 7, 'png');
-      $y += 7;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('AVENIDA IRRIGACION 103-LOCAL 13 C'), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode(''), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('AFILIACIÓN: ' . $req->affiliation), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode(''), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode(strtoupper(str_replace('_', ' ', $req->transaction_type))), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('TARJETA: ' . $req->card_number), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode($req->cardholder_name), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      if ($req->card_product === 'c') {
-        $this->fpdf->Cell(80, 5, utf8_decode('TARJETA DE CRÉDITO'), 0, 0, 'C');
-      } else {
-        $this->fpdf->Cell(80, 5, utf8_decode('TARJETA DE DÉBITO'), 0, 0, 'C');
-      }
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('__________________________'), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode($req->legend), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode($modo_ingreso . ' ARQC: ' . $req->arqc), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('AID: ' . $req->aid), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('__________________________'), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(40, 5, utf8_decode('IMPORTE '), 0, 0, 'L');
-      $this->fpdf->SetXY($x + 40, $y);
-      $this->fpdf->Cell(40, 5, utf8_decode("$" . GenController::moneyFormat($req->charge_amount) . " MXN"), 0, 0, 'R');
-      if ($document_type === 2) {
-        $y += 5;
-        $this->fpdf->SetXY($x, $y);
-        $this->fpdf->Cell(40, 5, utf8_decode('PAGADO CON PUNTOS '), 0, 0, 'L');
-        $this->fpdf->SetXY($x + 40, $y);
-        $this->fpdf->Cell(40, 5, utf8_decode("$" . GenController::moneyFormat($req->points_redeemed) . " MXN"), 0, 0, 'R');
-        $y += 5;
-        $this->fpdf->SetXY($x, $y);
-        $this->fpdf->Cell(40, 5, utf8_decode('TOTAL A PAGAR '), 0, 0, 'L');
-        $this->fpdf->SetXY($x + 40, $y);
-        $this->fpdf->Cell(40, 5, utf8_decode("$" . GenController::moneyFormat(($req->charge_amount - $req->points_redeemed)) . " MXN"), 0, 0, 'R');
-      }
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode(''), 0, 0, 'L');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('REF: ' . $req->financial_reference), 0, 0, 'L');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('SEC TXN: ' . $req->transaction_sequence), 0, 0, 'L');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('CAJA: ' . $req->terminal_number), 0, 0, 'L');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode(''), 0, 0, 'L');
-      if ($document_type === 1) {
-        $y += 5;
-        $this->fpdf->SetXY($x, $y);
-        $this->fpdf->MultiCell(80, 5, utf8_decode('Por este pagaré me obligo incondicionalmente a pagar a la orden del banco acreditante el importe de este título. Este pagaré procede del contrato de apertura de crédito que el banco acreditante y el tarjetahabiente tienen celebrado.'), 0, 'J', false);
-      } elseif ($document_type === 2) {
-        $y += 5;
-        $this->fpdf->SetXY($x, $y);
-        $this->fpdf->MultiCell(80, 5, utf8_decode('Por este pagaré me obligo incondicionalmente a pagar a la orden del banco acreditante el importe de este título. Este pagaré procede del contrato de apertura de crédito que el banco acreditante y el tarjetahabiente tienen celebrado.'), 0, 'J', false);
-        $y = $this->fpdf->GetY();
-        $this->fpdf->SetXY($x, $y);
-        $this->fpdf->Cell(80, 5, utf8_decode(''), 0, 0, 'L');
-        $y += 5;
-        $this->fpdf->SetXY($x, $y);
-        $this->fpdf->Cell(80, 5, utf8_decode('PUNTOS BBVA'), 0, 0, 'C');
-        $y += 5;
-        $this->fpdf->SetXY($x, $y);
-        $this->fpdf->Cell(80, 5, utf8_decode('-----------------------------'), 0, 0, 'C');
-        $y += 5;
-        $this->fpdf->SetXY($x, $y);
-        $this->fpdf->Cell(40, 5, utf8_decode('Saldo Ant Pesos:'), 0, 0, 'L');
-        $this->fpdf->SetXY($x + 40, $y);
-        $this->fpdf->Cell(40, 5, utf8_decode("$" . GenController::moneyFormat($req->previous_balance_amount) . " MXN"), 0, 0, 'R');
-        $y += 5;
-        $this->fpdf->SetXY($x, $y);
-        $this->fpdf->Cell(40, 5, utf8_decode('Saldo Ant Puntos:'), 0, 0, 'L');
-        $this->fpdf->SetXY($x + 40, $y);
-        $this->fpdf->Cell(40, 5, utf8_decode(GenController::numericFormat($req->previous_balance_points) . " PTS"), 0, 0, 'R');
-        $y += 5;
-        $this->fpdf->SetXY($x, $y);
-        $this->fpdf->Cell(40, 5, utf8_decode('Saldo Disp Pesos:'), 0, 0, 'L');
-        $this->fpdf->SetXY($x + 40, $y);
-        $this->fpdf->Cell(40, 5, utf8_decode("$" . GenController::moneyFormat($req->current_balance_amount) . " MXN"), 0, 0, 'R');
-        $y += 5;
-        $this->fpdf->SetXY($x, $y);
-        $this->fpdf->Cell(40, 5, utf8_decode('Saldo Disp Puntos:'), 0, 0, 'L');
-        $this->fpdf->SetXY($x + 40, $y);
-        $this->fpdf->Cell(40, 5, utf8_decode(GenController::numericFormat($req->current_balance_points) . " PTS"), 0, 0, 'R');
-        $y += 5;
-        $this->fpdf->SetXY($x, $y);
-        $this->fpdf->Cell(40, 5, utf8_decode('Pesos Redimidos:'), 0, 0, 'L');
-        $this->fpdf->SetXY($x + 40, $y);
-        $this->fpdf->Cell(40, 5, utf8_decode("$" . GenController::moneyFormat($req->points_redeemed) . " MXN"), 0, 0, 'R');
-        $y += 5;
-        $this->fpdf->SetXY($x, $y);
-        $this->fpdf->Cell(40, 5, utf8_decode('Puntos Redimidos:'), 0, 0, 'L');
-        $this->fpdf->SetXY($x + 40, $y);
-        $this->fpdf->Cell(40, 5, utf8_decode(GenController::numericFormat($req->amount_redeemed) . " PTS"), 0, 0, 'R');
-        $y += 5;
-        $this->fpdf->SetXY($x, $y);
-        $this->fpdf->Cell(80, 5, utf8_decode('-----------------------------'), 0, 0, 'C');
-      } elseif ($document_type === 3) {
-        $y += 5;
-        $this->fpdf->SetXY($x, $y);
-        $this->fpdf->Cell(80, 5, utf8_decode('TRES MESES SIN INTERESES'), 0, 0, 'C');
-        $y += 5;
-        $this->fpdf->SetXY($x, $y);
-        $this->fpdf->Cell(80, 5, utf8_decode(''), 0, 0, 'L');
-        $y += 5;
-        $this->fpdf->SetXY($x, $y);
-        $this->fpdf->MultiCell(80, 5, utf8_decode('Por este pagaré me obligo incondicionalmente a pagar a la orden del banco acreditante el importe de este título. este pagaré procede del contrato de apertura de crédito que el banco acreditante y el tarjetahabiente tienen celebrado.'), 0, 'J', false);
-      }
 
-      $y = $this->fpdf->GetY() + 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode(''), 0, 0, 'L');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      if ($req->reading_mode === '07') {
-        $this->fpdf->Cell(80, 5, utf8_decode('AUTORIZADO SIN FIRMA'), 0, 0, 'C');
-      } else {
-        $this->fpdf->Cell(80, 5, utf8_decode('AUTORIZADO MEDIANTE FIRMA ELECTRÓNICA'), 0, 0, 'C');
-      }
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode(''), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode(date('Y-m-d H:i:s')), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('Pagaré negociable únicamente'), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('en instituciones de crédito.'), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode(''), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('C   L   I   E   N   T   E'), 0, 0, 'C');
-
-      $this->fpdf->Line($x - 5, $y_ini, $x + 85, $y_ini);
-      //line bot
-      $this->fpdf->Line($x - 5, $y + 10, $x + 85, $y + 10);
-      //line left
-      $this->fpdf->Line($x - 5, $y_ini, $x - 5, $y + 10);
-      //line right
-      $this->fpdf->Line($x + 85, $y_ini, $x + 85, $y + 10);
-
-      ////////////////////////CLIENTE////////////////////////////
+      $this->fpdf = new Fpdf('P', 'mm', [80, 260]);
+      $this->fpdf->SetAutoPageBreak(true, 6);
+      $this->fpdf->SetMargins(5, 5, 5);
       $this->fpdf->AddPage();
 
-      switch ($req->reading_mode) {
-        case '05':
-          $modo_ingreso = 'I@1';
-          break;
-        case '01':
-          $modo_ingreso = 'T1';
-          break;
-        case '80':
-          $modo_ingreso = 'D@1';
-          break;
-        case '90':
-          $modo_ingreso = 'D@1';
-          break;
-        case '07':
-          $modo_ingreso = 'C@1';
-          break;
-        case '91':
-          $modo_ingreso = 'C@1';
-          break;
-        default:
-          $modo_ingreso = '';
-      }
-      $x = 65;
-      $y_ini = $this->fpdf->GetY() - 5;
-      $this->fpdf->SetFont('times', '', 10);
-      $this->fpdf->SetXY($x, 10);
-      $this->fpdf->Cell(80, 5, utf8_decode('BBVA'), 0, 0, 'C');
-      $y = $this->fpdf->GetY() + 5;
-      $this->fpdf->Image(Storage::disk('public')->path('logo-negro.png'), 90, $y, 30, 7, 'png');
-      $y += 7;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('AVENIDA IRRIGACION 103-LOCAL 13 C'), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode(''), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('AFILIACIÓN: ' . $req->affiliation), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode(''), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode(strtoupper(str_replace('_', ' ', $req->transaction_type))), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('TARJETA: ' . $req->card_number), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode($req->cardholder_name), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      if ($req->card_product === 'c') {
-        $this->fpdf->Cell(80, 5, utf8_decode('TARJETA DE CRÉDITO'), 0, 0, 'C');
-      } else {
-        $this->fpdf->Cell(80, 5, utf8_decode('TARJETA DE DÉBITO'), 0, 0, 'C');
-      }
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('__________________________'), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode($req->legend), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode($modo_ingreso . ' ARQC: ' . $req->arqc), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('AID: ' . $req->aid), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('__________________________'), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(40, 5, utf8_decode('IMPORTE '), 0, 0, 'L');
-      $this->fpdf->SetXY($x + 40, $y);
-      $this->fpdf->Cell(40, 5, utf8_decode("$" . GenController::moneyFormat($req->charge_amount) . " MXN"), 0, 0, 'R');
-      if ($document_type === 2) {
-        $y += 5;
-        $this->fpdf->SetXY($x, $y);
-        $this->fpdf->Cell(40, 5, utf8_decode('PAGADO CON PUNTOS '), 0, 0, 'L');
-        $this->fpdf->SetXY($x + 40, $y);
-        $this->fpdf->Cell(40, 5, utf8_decode("$" . GenController::moneyFormat($req->points_redeemed) . " MXN"), 0, 0, 'R');
-        $y += 5;
-        $this->fpdf->SetXY($x, $y);
-        $this->fpdf->Cell(40, 5, utf8_decode('TOTAL A PAGAR '), 0, 0, 'L');
-        $this->fpdf->SetXY($x + 40, $y);
-        $this->fpdf->Cell(40, 5, utf8_decode("$" . GenController::moneyFormat(($req->charge_amount - $req->points_redeemed)) . " MXN"), 0, 0, 'R');
-      }
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode(''), 0, 0, 'L');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('REF: ' . $req->financial_reference), 0, 0, 'L');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('SEC TXN: ' . $req->transaction_sequence), 0, 0, 'L');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('CAJA: ' . $req->terminal_number), 0, 0, 'L');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode(''), 0, 0, 'L');
-      if ($document_type === 1) {
-        $y += 5;
-        $this->fpdf->SetXY($x, $y);
-        $this->fpdf->MultiCell(80, 5, utf8_decode('Por este pagaré me obligo incondicionalmente a pagar a la orden del banco acreditante el importe de este título. Este pagaré procede del contrato de apertura de crédito que el banco acreditante y el tarjetahabiente tienen celebrado.'), 0, 'J', false);
-      } elseif ($document_type === 2) {
-        $y += 5;
-        $this->fpdf->SetXY($x, $y);
-        $this->fpdf->MultiCell(80, 5, utf8_decode('Por este pagaré me obligo incondicionalmente a pagar a la orden del banco acreditante el importe de este título. Este pagaré procede del contrato de apertura de crédito que el banco acreditante y el tarjetahabiente tienen celebrado.'), 0, 'J', false);
-        // $y = $this->fpdf->GetY();
-        // $this->fpdf->SetXY($x, $y);
-        // $this->fpdf->Cell(80, 5, utf8_decode(''), 0, 0, 'L');
-        // $y += 5;
-        // $this->fpdf->SetXY($x, $y);
-        // $this->fpdf->Cell(80, 5, utf8_decode('PUNTOS BBVA'), 0, 0, 'C');
-        // $y += 5;
-        // $this->fpdf->SetXY($x, $y);
-        // $this->fpdf->Cell(80, 5, utf8_decode('-----------------------------'), 0, 0, 'C');
-        // $y += 5;
-        // $this->fpdf->SetXY($x, $y);
-        // $this->fpdf->Cell(40, 5, utf8_decode('Saldo Ant Pesos:'), 0, 0, 'L');
-        // $this->fpdf->SetXY($x + 40, $y);
-        // $this->fpdf->Cell(40, 5, utf8_decode("$" . GenController::moneyFormat($req->previous_balance_amount) . " MXN"), 0, 0, 'R');
-        // $y += 5;
-        // $this->fpdf->SetXY($x, $y);
-        // $this->fpdf->Cell(40, 5, utf8_decode('Saldo Ant Puntos:'), 0, 0, 'L');
-        // $this->fpdf->SetXY($x + 40, $y);
-        // $this->fpdf->Cell(40, 5, utf8_decode(GenController::numericFormat($req->previous_balance_points) . " PTS"), 0, 0, 'R');
-        // $y += 5;
-        // $this->fpdf->SetXY($x, $y);
-        // $this->fpdf->Cell(40, 5, utf8_decode('Saldo Disp Pesos:'), 0, 0, 'L');
-        // $this->fpdf->SetXY($x + 40, $y);
-        // $this->fpdf->Cell(40, 5, utf8_decode("$" . GenController::moneyFormat($req->current_balance_amount) . " MXN"), 0, 0, 'R');
-        // $y += 5;
-        // $this->fpdf->SetXY($x, $y);
-        // $this->fpdf->Cell(40, 5, utf8_decode('Saldo Disp Puntos:'), 0, 0, 'L');
-        // $this->fpdf->SetXY($x + 40, $y);
-        // $this->fpdf->Cell(40, 5, utf8_decode(GenController::numericFormat($req->current_balance_points) . " PTS"), 0, 0, 'R');
-        // $y += 5;
-        // $this->fpdf->SetXY($x, $y);
-        // $this->fpdf->Cell(40, 5, utf8_decode('Pesos Redimidos:'), 0, 0, 'L');
-        // $this->fpdf->SetXY($x + 40, $y);
-        // $this->fpdf->Cell(40, 5, utf8_decode("$" . GenController::moneyFormat($req->points_redeemed) . " MXN"), 0, 0, 'R');
-        // $y += 5;
-        // $this->fpdf->SetXY($x, $y);
-        // $this->fpdf->Cell(40, 5, utf8_decode('Puntos Redimidos:'), 0, 0, 'L');
-        // $this->fpdf->SetXY($x + 40, $y);
-        // $this->fpdf->Cell(40, 5, utf8_decode(GenController::numericFormat($req->amount_redeemed) . " PTS"), 0, 0, 'R');
-        // $y += 5;
-        // $this->fpdf->SetXY($x, $y);
-        // $this->fpdf->Cell(80, 5, utf8_decode('-----------------------------'), 0, 0, 'C');
-      } elseif ($document_type === 3) {
-        $y += 5;
-        $this->fpdf->SetXY($x, $y);
-        $this->fpdf->Cell(80, 5, utf8_decode('TRES MESES SIN INTERESES'), 0, 0, 'C');
-        $y += 5;
-        $this->fpdf->SetXY($x, $y);
-        $this->fpdf->Cell(80, 5, utf8_decode(''), 0, 0, 'L');
-        $y += 5;
-        $this->fpdf->SetXY($x, $y);
-        $this->fpdf->MultiCell(80, 5, utf8_decode('Por este pagaré me obligo incondicionalmente a pagar a la orden del banco acreditante el importe de este título. este pagaré procede del contrato de apertura de crédito que el banco acreditante y el tarjetahabiente tienen celebrado.'), 0, 'J', false);
-      }
+      $this->pdfCenter('BBVA', 10, 'times', 'B');
 
-      $y = $this->fpdf->GetY() + 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode(''), 0, 0, 'L');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      if ($req->reading_mode === '07') {
-        $this->fpdf->Cell(80, 5, utf8_decode('AUTORIZADO SIN FIRMA'), 0, 0, 'C');
+      $logo_w = 30;
+      $logo_h = 7;
+      $logo_x = ($this->fpdf->GetPageWidth() - $logo_w) / 2;
+
+      $this->fpdf->Image(
+        Storage::disk('public')->path('logo-negro.png'),
+        $logo_x,
+        $this->fpdf->GetY(),
+        $logo_w,
+        $logo_h,
+        'png'
+      );
+      
+      $this->fpdf->Ln(8);
+      $this->pdfCenter('AVENIDA IRRIGACION 103-LOCAL 13 C', 10);
+      $this->fpdf->Ln(1);
+      $this->pdfCenter('AFILIACIÓN: ' . $req->affiliation, 10);
+      $this->fpdf->Ln(5);
+      $this->pdfCenter(strtoupper(str_replace('_', ' ', $req->transaction_type)), 10);
+      $this->fpdf->Ln(1);
+      $this->pdfCenter('TARJETA: ' . $req->card_number, 10);
+      $this->fpdf->Ln(1);
+      $this->pdfCenter($req->cardholder_name, 10);
+      if ($req->card_product === 'c') {
+        $this->pdfCenter('TARJETA DE CRÉDITO', 10);
       } else {
-        $this->fpdf->Cell(80, 5, utf8_decode('AUTORIZADO MEDIANTE FIRMA ELECTRÓNICA'), 0, 0, 'C');
+        $this->pdfCenter('TARJETA DE DÉBITO', 10);
       }
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode(''), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode(date('Y-m-d H:i:s')), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('Pagaré negociable únicamente'), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('en instituciones de crédito.'), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode(''), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('C   O   M   E   R   C   I   O'), 0, 0, 'C');
+      $this->fpdf->Ln(1);
+      $this->pdfCenter('__________________________', 10);
+      $this->fpdf->Ln(1);
+      $this->pdfCenter($req->legend, 10);
+      $this->fpdf->Ln(1);
+      $this->pdfCenter($modo_ingreso . ' ARQC: ' . $req->arqc, 10);
+      $this->fpdf->Ln(1);
+      $this->pdfCenter('AID: ' . $req->aid, 10);
+      $this->fpdf->Ln(1);
+      $this->pdfCenter('__________________________', 10);
+      $this->fpdf->Ln(1);
+      $this->pdfDoubleColumn('IMPORTE ', '$' . GenController::moneyFormat($req->charge_amount) . ' MXN', 10);
+      if ($document_type === 2) {
+        $this->fpdf->Ln(5);
+        $this->pdfDoubleColumn('PAGADO CON PUNTOS ', '$' . GenController::moneyFormat($req->points_redeemed) . ' MXN', 10);
+        $this->fpdf->Ln(5);
+        $this->pdfDoubleColumn('TOTAL A PAGAR ', '$' . GenController::moneyFormat(($req->charge_amount - $req->points_redeemed)) . ' MXN', 10);
+      }
+      $this->fpdf->Ln(10);
+      $this->pdfLeft('REF: ' . $req->financial_reference, 10);
+      $this->fpdf->Ln(0);
+      $this->pdfLeft('SEC TXN: ' . $req->transaction_sequence, 10);
+      $this->fpdf->Ln(0);
+      $this->pdfLeft('CAJA: ' . $req->terminal_number, 10);
+      $this->fpdf->Ln(3);
+      if ($document_type === 1) {
+        $this->fpdf->MultiCell(0, 5, utf8_decode('Por este pagaré me obligo incondicionalmente a pagar a la orden del banco acreditante el importe de este título. Este pagaré procede del contrato de apertura de crédito que el banco acreditante y el tarjetahabiente tienen celebrado.'), 0, 'J', false);
+      } elseif ($document_type === 2) {
+        $this->fpdf->MultiCell(0, 5, utf8_decode('Por este pagaré me obligo incondicionalmente a pagar a la orden del banco acreditante el importe de este título. Este pagaré procede del contrato de apertura de crédito que el banco acreditante y el tarjetahabiente tienen celebrado.'), 0, 'J', false);
+        $this->fpdf->Ln(10);
+        $this->pdfCenter('PUNTOS BBVA', 10);
+        $this->fpdf->Ln(1);
+        $this->pdfCenter('-----------------------------', 10);
+        $this->fpdf->Ln(1);
+        $this->pdfDoubleColumn('Saldo Ant Pesos: ', '$' . GenController::moneyFormat($req->previous_balance_amount) . ' MXN', 10);
+        $this->fpdf->Ln(5);
+        $this->pdfDoubleColumn('Saldo Ant Puntos: ', GenController::numericFormat($req->previous_balance_points) . ' PTS', 10);
+        $this->fpdf->Ln(5);
+        $this->pdfDoubleColumn('Saldo Disp Pesos: ', '$' . GenController::moneyFormat($req->current_balance_amount) . ' MXN', 10);
+        $this->fpdf->Ln(5);
+        $this->pdfDoubleColumn('Saldo Disp Puntos: ', GenController::numericFormat($req->current_balance_points) . ' PTS', 10);
+        $this->fpdf->Ln(5);
+        $this->pdfDoubleColumn('Pesos Redimidos: ', '$' . GenController::moneyFormat($req->points_redeemed) . ' MXN', 10);
+        $this->fpdf->Ln(5);
+        $this->pdfDoubleColumn('Puntos Redimidos: ', GenController::numericFormat($req->amount_redeemed) . ' PTS', 10);
+        $this->fpdf->Ln(5);
+        $this->pdfCenter('-----------------------------', 10);
+      } elseif ($document_type === 3) {
+        $this->fpdf->Ln(5);
+        $this->pdfCenter('TRES MESES SIN INTERESES', 10);
+        $this->fpdf->Ln(5);
+        $this->fpdf->MultiCell(0, 5, utf8_decode('Por este pagaré me obligo incondicionalmente a pagar a la orden del banco acreditante el importe de este título. este pagaré procede del contrato de apertura de crédito que el banco acreditante y el tarjetahabiente tienen celebrado.'), 0, 'J', false);
+      }
+      $this->fpdf->Ln(5);
+      if ($req->reading_mode === '07') {
+        $this->pdfCenter('AUTORIZADO SIN FIRMA', 10);
+      } else {
+        $this->pdfCenter('AUTORIZADO MEDIANTE FIRMA ELECTRÓNICA', 10);
+      }
+      $this->fpdf->Ln(5);
+      $this->pdfCenter($req->operation_date, 10);
+      $this->fpdf->Ln(0);
+      $this->pdfCenter('Pagaré negociable únicamente', 10);
+      $this->fpdf->Ln(0);
+      $this->pdfCenter('en instituciones de crédito.', 10);
+      $this->fpdf->Ln(5);
+      $this->pdfCenter('C   L   I   E   N   T   E', 10);
 
       $title = "Ticket - " . time();
-
-      //line top
-      $this->fpdf->Line($x - 5, $y_ini, $x + 85, $y_ini);
-      //line bot
-      $this->fpdf->Line($x - 5, $y + 10, $x + 85, $y + 10);
-      //line left
-      $this->fpdf->Line($x - 5, $y_ini, $x - 5, $y + 10);
-      //line right
-      $this->fpdf->Line($x + 85, $y_ini, $x + 85, $y + 10);
 
       $filename = public_path('..') . "/storage/app/private/temp/" . $title . ".pdf";
       $this->fpdf->Output($filename, 'F');
@@ -462,115 +173,64 @@ class PdfController extends Controller
     }
   }
 
-  public function ticketOnlinePayment($req)
-  {
+  public function ticketOnlinePayment($req) {
     try {
-
-      $this->fpdf = new Fpdf;
+      $this->fpdf = new Fpdf('P', 'mm', [80, 150]);
+      $this->fpdf->SetAutoPageBreak(true, 6);
+      $this->fpdf->SetMargins(5, 5, 5);
       $this->fpdf->AddPage();
+
+      $logo_w = 30;
+      $logo_h = 7;
+      $logo_x = ($this->fpdf->GetPageWidth() - $logo_w) / 2;
+
+      $this->fpdf->Image(
+        Storage::disk('public')->path('logo-negro.png'),
+        $logo_x,
+        $this->fpdf->GetY(),
+        $logo_w,
+        $logo_h,
+        'png'
+      );
+      
+      $this->fpdf->Ln(8);
+      $this->pdfCenter('AVENIDA IRRIGACION 103-LOCAL 13 C', 10);
 
 
       $x = 65;
-      $y_ini = $this->fpdf->GetY() - 5;
-      $this->fpdf->SetFont('times', '', 10);
-      // $this->fpdf->SetXY($x, 10);
-      // $this->fpdf->Cell(80, 5, utf8_decode('BBVA'), 0, 0, 'C');
       $y = $this->fpdf->GetY() + 5;
-      $this->fpdf->Image(Storage::disk('public')->path('logo-negro.png'), 90, $y, 30, 7, 'png');
-      $y += 7;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('AVENIDA IRRIGACION 103-LOCAL 13 C'), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode(''), 0, 0, 'C');
-      // $y += 5;
-      // $this->fpdf->SetXY($x, $y);
-      // $this->fpdf->Cell(80, 5, utf8_decode('AFILIACIÓN: ' . $req->affiliation), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode(''), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode(strtoupper('VENTA')), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('TARJETA: ' . $req->card_number), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode($req->cardholder_name), 0, 0, 'C');
-      $y += 5;
+
+      
+      $this->fpdf->Ln(5);
+      $this->pdfCenter('VENTA', 10);
+      $this->fpdf->Ln(1);
+      $this->pdfCenter('TARJETA: ' . $req->card_number, 10);
+      $this->fpdf->Ln(1);
+      $this->pdfCenter($req->cardholder_name, 10);
       $payment_form = PaymentForm::find($req->payment_form_id);
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode($payment_form->name), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('__________________________'), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('APROBADA ' . $req->authorization_code), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('__________________________'), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(40, 5, utf8_decode('IMPORTE '), 0, 0, 'L');
-      $this->fpdf->SetXY($x + 40, $y);
-      $this->fpdf->Cell(40, 5, utf8_decode("$" . GenController::moneyFormat($req->charge_amount) . " MXN"), 0, 0, 'R');
-      // if ($document_type === 2) {
-      //   $y += 5;
-      //   $this->fpdf->SetXY($x, $y);
-      //   $this->fpdf->Cell(40, 5, utf8_decode('PAGADO CON PUNTOS '), 0, 0, 'L');
-      //   $this->fpdf->SetXY($x + 40, $y);
-      //   $this->fpdf->Cell(40, 5, utf8_decode("$" . GenController::moneyFormat($req->points_redeemed) . " MXN"), 0, 0, 'R');
-      //   $y += 5;
-      //   $this->fpdf->SetXY($x, $y);
-      //   $this->fpdf->Cell(40, 5, utf8_decode('TOTAL A PAGAR '), 0, 0, 'L');
-      //   $this->fpdf->SetXY($x + 40, $y);
-      //   $this->fpdf->Cell(40, 5, utf8_decode("$" . GenController::moneyFormat(($req->amount - $req->points_redeemed)) . " MXN"), 0, 0, 'R');
-      // }
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode(''), 0, 0, 'L');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->MultiCell(80, 5, utf8_decode('Por este pagaré me obligo incondicionalmente a pagar a la orden del banco acreditante el importe de este título. Este pagaré procede del contrato de apertura de crédito que el banco acreditante y el tarjetahabiente tienen celebrado.'), 0, 'J', false);
-
-
-      $y = $this->fpdf->GetY() + 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode(''), 0, 0, 'L');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('AUTORIZADO CON VENTA ELECTRÓNICA'), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode(''), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode($req->operation_date), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('Pagaré negociable únicamente'), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('en instituciones de crédito.'), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode(''), 0, 0, 'C');
-      $y += 5;
-      $this->fpdf->SetXY($x, $y);
-      $this->fpdf->Cell(80, 5, utf8_decode('C   L   I   E   N   T   E'), 0, 0, 'C');
+      $this->fpdf->Ln(1);
+      $this->pdfCenter(strtoupper($payment_form->name), 10);
+      $this->fpdf->Ln(1);
+      $this->pdfCenter('__________________________', 10);
+      $this->fpdf->Ln(1);
+      $this->pdfCenter('APROBADA ' . $req->authorization_code, 10);
+      $this->pdfCenter('__________________________', 10);
+      $this->fpdf->Ln(1);
+      $this->pdfDoubleColumn('IMPORTE ', '$' . GenController::moneyFormat($req->charge_amount) . ' MXN', 10);
+      $this->fpdf->Ln(10);
+      $this->fpdf->MultiCell(0, 5, utf8_decode('Por este pagaré me obligo incondicionalmente a pagar a la orden del banco acreditante el importe de este título. Este pagaré procede del contrato de apertura de crédito que el banco acreditante y el tarjetahabiente tienen celebrado.'), 0, 'J', false);
+      $this->fpdf->Ln(5);
+      $this->pdfCenter('AUTORIZADO CON VENTA ELECTRÓNICA', 10);
+      $this->fpdf->Ln(5);
+      $this->pdfCenter($req->operation_date, 10);
+      $this->fpdf->Ln(0);
+      $this->pdfCenter('Pagaré negociable únicamente', 10);
+      $this->fpdf->Ln(0);
+      $this->pdfCenter('en instituciones de crédito.', 10);
+      $this->fpdf->Ln(5);
+      $this->pdfCenter('C   L   I   E   N   T   E', 10);
 
       $title = "Ticket - " . time();
-
-      //line top
-      $this->fpdf->Line($x - 5, $y_ini, $x + 85, $y_ini);
-      //line bot
-      $this->fpdf->Line($x - 5, $y + 10, $x + 85, $y + 10);
-      //line left
-      $this->fpdf->Line($x - 5, $y_ini, $x - 5, $y + 10);
-      //line right
-      $this->fpdf->Line($x + 85, $y_ini, $x + 85, $y + 10);
 
       $filename = public_path('..') . "/storage/app/private/temp/" . $title . ".pdf";
       $this->fpdf->Output($filename, 'F');
@@ -597,8 +257,7 @@ class PdfController extends Controller
     }
   }
 
-  public function consultation($data)
-  {
+  public function consultation($data) {
     $pdf = null;
     $qr_path = null;
 
@@ -606,40 +265,40 @@ class PdfController extends Controller
       $page_width = 80;
       $page_height = 160;
 
-      $pdf = new Fpdf('P', 'mm', [$page_width, $page_height]);
-      $pdf->SetAutoPageBreak(true, 6);
-      $pdf->SetMargins(6, 10, 6);
-      $pdf->AddPage();
+      $this->fpdf = new Fpdf('P', 'mm', [80, 160]);
+      $this->fpdf->SetAutoPageBreak(true, 6);
+      $this->fpdf->SetMargins(5, 5, 5);
+      $this->fpdf->AddPage();
 
       $logo_w = 30;
       $logo_h = 7;
-      $logo_x = ($pdf->GetPageWidth() - $logo_w) / 2;
+      $logo_x = ($this->fpdf->GetPageWidth() - $logo_w) / 2;
 
-      $pdf->Image(
+      $this->fpdf->Image(
         Storage::disk('public')->path('logo-negro.png'),
         $logo_x,
-        $pdf->GetY(),
+        $this->fpdf->GetY(),
         $logo_w,
         $logo_h,
         'png'
       );
 
-      $pdf->Ln(14);
+      $this->fpdf->Ln(14);
 
-      $this->pdfCenter($pdf, 'C O N S U L T A', 8, 'times', 'B', 13);
-      $pdf->Ln(4);
+      $this->pdfCenter('C O N S U L T A', 13, 'times', 'B');
+      $this->fpdf->Ln(4);
 
-      $this->pdfKv($pdf, 'Folio:', (string) $data->folio, 6, 11, 11);
-      $pdf->Ln(2);
+      $this->pdfKv('Folio:', (string) $data->folio, 6, 11, 11);
+      $this->fpdf->Ln(2);
 
-      $this->pdfKv($pdf, 'Monto:', '$' . GenController::moneyFormat($data->charge_amount) . ' MXN', 6, 11, 11);
-      $pdf->Ln(4);
+      $this->pdfKv('Monto:', '$' . GenController::moneyFormat($data->charge_amount) . ' MXN', 6, 11, 11);
+      $this->fpdf->Ln(4);
 
-      $this->pdfKv($pdf, 'ID:', (string) $data->uiid, 5, 10, 9);
-      $this->pdfKv($pdf, 'Fecha:', (string) $data->date, 5, 10, 9);
-      $this->pdfKv($pdf, 'Médico:', (string) $data->doctor, 5, 10, 9);
+      $this->pdfKv('ID:', (string) $data->uiid, 5, 10, 9);
+      $this->pdfKv('Fecha:', (string) $data->date, 5, 10, 9);
+      $this->pdfKv('Médico:', (string) $data->doctor, 5, 10, 9);
 
-      $pdf->Ln(6);
+      $this->fpdf->Ln(6);
 
       $title = 'consultation_' . time();
       $folio_encrypted = Crypt::encryptString((string) $data->folio);
@@ -652,22 +311,27 @@ class PdfController extends Controller
         ->generate($folio_encrypted, $qr_path);
 
       $qr_w = 46;
-      $qr_x = ($pdf->GetPageWidth() - $qr_w) / 2;
+      $qr_x = ($this->fpdf->GetPageWidth() - $qr_w) / 2;
 
-      $pdf->Image($qr_path, $qr_x, $pdf->GetY(), $qr_w, 0, 'png');
+      $this->fpdf->Image($qr_path, $qr_x, $this->fpdf->GetY(), $qr_w, 0, 'png');
 
       $filename = public_path('..') . "/storage/app/private/temp/{$title}.pdf";
-      $pdf->Output($filename, 'F');
+      $this->fpdf->Output($filename, 'F');
 
       if (is_file($qr_path)) {
         @unlink($qr_path);
       }
 
       return $filename;
+      // return response($this->fpdf->Output('S'))
+      //   ->header('Content-Type', 'application/pdf')
+        // ->header('Content-Disposition', 'inline; filename="' . $title . '.pdf"');
     } catch (\Throwable $th) {
       if ($qr_path && is_file($qr_path)) {
         @unlink($qr_path);
       }
+
+      return $th;
 
       return apiRsp(false, 'ERR.', collect([
         'error' => $th->getMessage(),
@@ -675,24 +339,32 @@ class PdfController extends Controller
     }
   }
 
-  private function pdfCenter(Fpdf $pdf, string $text, float $h = 6, string $font = 'times', string $style = '', int $size = 11): void
-  {
-    $pdf->SetFont($font, $style, $size);
-    $pdf->Cell(0, $h, utf8_decode($text), 0, 1, 'C');
+  private function pdfCenter(string $text, int $size = 12, string $font = 'times', string $style = ''): void {
+    $this->fpdf->SetFont($font, $style, $size);
+    $this->fpdf->Cell(0, 5, utf8_decode($text), 0, 1, 'C');
+  }
+
+  private function pdfLeft(string $text, int $size = 12, string $font = 'times', string $style = ''): void {
+    $this->fpdf->SetFont($font, $style, $size);
+    $this->fpdf->Cell(0, 5, utf8_decode($text), 0, 1, 'L');
+  }
+
+  private function pdfDoubleColumn(string $label, string $value, int $size = 12, string $font = 'times', string $style = ''): void {
+    $this->fpdf->SetFont($font, $style, $size);
+    $this->fpdf->Cell(0, 5, utf8_decode($label), 0, 0, 'L');
+    $this->fpdf->Cell(0, 5, utf8_decode($value), 0, 0, 'R');
   }
 
   private function pdfKv(
-    Fpdf $pdf,
     string $label,
     string $value,
     float $line_h = 6,
     int $label_size = 11,
     int $value_size = 11
   ): void {
-    $pdf->SetFont('times', 'B', $label_size);
-    $pdf->Cell(0, $line_h, utf8_decode($label), 0, 1, 'C');
-
-    $pdf->SetFont('times', '', $value_size);
-    $pdf->MultiCell(0, $line_h, utf8_decode($value), 0, 'C');
+    $this->fpdf->SetFont('times', 'B', $label_size);
+    $this->fpdf->Cell(0, $line_h, utf8_decode($label), 0, 1, 'C');
+    $this->fpdf->SetFont('times', '', $value_size);
+    $this->fpdf->MultiCell(0, $line_h, utf8_decode($value), 0, 'C');
   }
 }

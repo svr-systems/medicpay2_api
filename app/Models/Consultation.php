@@ -133,7 +133,7 @@ class Consultation extends Model
         'charge_amount',
         'doctor_id',
         'transaction_id',
-        'invoice_id'
+        'patient_invoice_id'
       ]);
 
     if ($item) {
@@ -141,13 +141,13 @@ class Consultation extends Model
       $item->patient = Patient::getItem(null, $item->patient_id);
 
       $doctor = Doctor::getItem(null, $item->doctor_id);
-      if ($item->transaction_id === null || $item->invoice_id === null) {
+      if ($item->transaction_id === null || $item->patient_invoice_id === null) {
         $email_data = Consultation::getEmailData($item, $doctor);
         return $email_data;
       } else {
         $paid_info = new \stdClass;
         $paid_info->is_paid = ($item->transaction_id) ? true : false;
-        $paid_info->is_stamped = ($item->invoice_id) ? true : false;
+        $paid_info->is_stamped = ($item->patient_invoice_id) ? true : false;
 
         return $paid_info;
       }
@@ -167,7 +167,7 @@ class Consultation extends Model
     $email_data->patient = GenController::getFullName($item->patient->user);
     $email_data->charge_amount = $item->charge_amount;
     $email_data->is_paid = ($item->transaction_id) ? true : false;
-    $email_data->is_stamped = ($item->invoice_id) ? true : false;
+    $email_data->is_stamped = ($item->patient_invoice_id) ? true : false;
 
     return $email_data;
   }
@@ -203,7 +203,7 @@ class Consultation extends Model
         'created_at',
         'charge_amount',
         'transaction_id',
-        'invoice_id',
+        'patient_invoice_id',
         'created_at as created_at_label',
       ]);
 
