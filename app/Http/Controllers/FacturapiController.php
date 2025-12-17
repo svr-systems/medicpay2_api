@@ -90,7 +90,7 @@ class FacturapiController extends Controller {
       Storage::delete($file_path_pdf);
 
       $consultation = Consultation::find($consultation_id);
-      $consultation->invoice_id = $invoice->id;
+      $consultation->patient_invoice_id = $invoice->id;
       $consultation->save();
 
       return $this->apiRsp(
@@ -175,13 +175,72 @@ class FacturapiController extends Controller {
         Storage::delete($file_path_xml);
         Storage::delete($file_path_pdf);
 
-        // $consultation = Consultation::find($consultation_id);
-        // $consultation->invoice_id = $invoice->id;
-        // $consultation->save();
+        $consultation = Consultation::find($consultation_id);
+        $consultation->doctor_invoice_id = $invoice->id;
+        $consultation->save();
 
 
       }
     }
     return null;
+  }
+  public function testingInvoice() {
+    try {
+      $facturapi = new Facturapi(env('FACTURAPI_KEY'));
+
+      $customer = [
+        "legal_name" => 'SAMUEL VALADEZ RAMIREZ',
+        "tax_id" => 'VARS901005KT2',
+        "tax_system" => '612',
+        "address" => [
+          "zip" => '38015',
+          "country" => "MEX"
+        ]
+      ];
+
+      $customer = $facturapi->Customers->create($customer);
+
+      $item = [
+        [
+          "quantity" => 1,
+          "discount" => 0,
+          "product" => [
+            "description" => "SERVICIOS MÉDICOS DE DOCTORES ESPECIALISTAS",
+            "product_key" => "85121600",
+            "unit_key" => "E48",
+            "price" => 100,
+            "tax_included" => true,
+            "taxes" => [
+              [
+                "type" => "IVA",
+                "rate" => 0.106667,
+                "withholding" => true
+              ],
+              [
+                "type" => "ISR",
+                "rate" => 0.1,
+                "withholding" => true
+              ]
+            ]
+          ]
+        ]
+      ];
+
+      $invoice = $facturapi->Invoices->create([
+        "customer" => $customer->id,
+        "items" => $item,
+        "payment_form" => '04',
+        "payment_method" => 'PUE',
+        "use" => 'G03'
+      ]);
+
+      return $this->apiRsp(
+        200,
+        'Registro retornado correctamente',
+        ['item' => $invoice]
+      );
+    } catch (Throwable $err) {
+      return $this->apiRsp(500, null, $err);
+    }
   }
 }
