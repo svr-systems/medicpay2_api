@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
   public function up(): void {
     Schema::table('fiscal_regimes', function (Blueprint $table) {
-      $table->boolean('is_individual')->default(false);
+      $table->boolean('is_individual')->nullable()->default(false);
     });
   }
 
