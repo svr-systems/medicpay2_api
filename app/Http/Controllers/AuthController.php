@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Doctor;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\UserBankData;
@@ -31,14 +32,6 @@ class AuthController extends Controller
 
       $user = User::find(Auth::id());
       $user->role = Role::find($user->role_id, ['name']);
-
-      if ($user->role_id == 3) {
-        $user_bank_data = UserBankData::where('is_active', true)->where('user_id', $user->id)->first();
-
-        if ($user_bank_data) {
-          $user->is_valid_doctor = $user_bank_data->is_valid;
-        }
-      }
 
       return $this->apiRsp(
         200,

@@ -21,6 +21,7 @@ class Specialty extends Model {
   public static function valid($data) {
     $rules = [
       'name' => 'required|string|min:2|max:80',
+      'is_doctor' => 'required|boolean'
     ];
 
     $msgs = [];
@@ -42,6 +43,7 @@ class Specialty extends Model {
         'id',
         'is_active',
         'name',
+        'is_doctor'
       ]);
 
     foreach ($items as $key => $item) {

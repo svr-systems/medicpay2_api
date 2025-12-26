@@ -6,6 +6,7 @@ use App\Http\Controllers\DocMgrController;
 use App\Http\Controllers\GenController;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Validator;
 
 class Doctor extends Model {
   use HasFactory;
@@ -13,6 +14,18 @@ class Doctor extends Model {
 
   static public function getUiid($id) {
     return 'DR-' . str_pad($id, 4, '0', STR_PAD_LEFT);
+  }
+
+  public static function validValidation($data) {
+    $rules = [
+      'id' => 'required|numeric',
+      'is_valid' => 'required|boolean',
+      // 'bank_validated_path' => 'required|file',
+    ];
+
+    $msgs = [];
+
+    return Validator::make($data, $rules, $msgs);
   }
 
   static public function getItems($req) {
@@ -45,6 +58,7 @@ class Doctor extends Model {
         'id',
         'user_id',
         'hospital_id',
+        'specialty_id',
       ]);
 
     if ($item) {
@@ -52,11 +66,7 @@ class Doctor extends Model {
       $item->user = User::getItem(null, $item->user_id);
       $item->user->full_name = GenController::getFullName($item->user);
       $item->hospital = Hospital::find($item->hospital_id);
-
-      $item->doctor_specialties = DoctorSpecialty::where('is_active', true)->where('Doctor_id', $item->id)->get();
-      foreach ($item->doctor_specialties as $key => $doctor_specialty) {
-        $doctor_specialty->specialty = Specialty::find($doctor_specialty->specialty_id);
-      }
+      $item->specialty = Specialty::find($item->specialty_id);
     }
 
     return $item;

@@ -134,9 +134,8 @@ class DoctorController extends Controller {
       $hospital = json_decode($req->hospital);
       $hospital = Hospital::getItemBySubdomain($hospital->subdomain);
 
-      $item->user_id = $user->id;
-      $item->hospital_id = $hospital->id;
-      $item->save();
+      $req->user_id = $user->id;
+      $req->hospital_id = $hospital->id;
 
       $this->saveItem($item, $req);
 
@@ -153,32 +152,41 @@ class DoctorController extends Controller {
   }
 
   public static function saveItem($item, $data, $is_req = true) {
-    if ($data->doctor_specialties) {
-      // $doctor_specialties = json_decode($data->doctor_specialties);
-      $doctor_specialties = $data->doctor_specialties;
-      foreach ($doctor_specialties as $doctor_specialty) {
-        $doctor_specialty = (array) $doctor_specialty;
-        $doctor_specialty_item = DoctorSpecialty::find($doctor_specialty['id']);
-        if (!$doctor_specialty_item) {
-          $doctor_specialty_item = new DoctorSpecialty;
-        }
+    $item->user_id = $data->user_id;
+    $item->hospital_id = $data->hospital_id;
+    $item->specialty_id = GenController::filter($data->specialty_id, 'id');
+    $item->license = GenController::filter($data->license, 'U');
 
-        $doctor_specialty_item->is_active = GenController::filter($doctor_specialty['is_active'], 'b');
-        $doctor_specialty_item->doctor_id = $item->id;
-        $doctor_specialty_item->specialty_id = GenController::filter($doctor_specialty['specialty_id'], 'id');
-        $doctor_specialty_item->license = GenController::filter($doctor_specialty['license'], 'U');
-        ;
+    $item->save();
+    
+  }
 
-        // $doctor_specialty_item->license = DocMgrController::save(
-        //   $data->license,
-        //   DocMgrController::exist($data->license_doc),
-        //   $data->license_dlt,
-        //   'DoctorSpecialty'
-        // );
-        $item->save();
-
-        $doctor_specialty_item->save();
+  public function valid(Request $req) {
+    DB::beginTransaction();
+    try {
+      $valid = Doctor::validValidation($req->all());
+      if ($valid->fails()) {
+        return $this->apiRsp(422, $valid->errors()->first());
       }
+      $item = Doctor::find($req->id);
+
+      if (!$item) {
+        return $this->apiRsp(422, 'ID no existente');
+      }
+
+      $item->is_valid = GenController::filter($req->is_valid,'b');
+      $item->validated_by_id = $req->user()->id;
+      $item->validated_at = date('Y-m-d H:i:s');
+      $item->save();
+
+      DB::commit();
+      return $this->apiRsp(
+        200,
+        'Validación correctamente'
+      );
+    } catch (Throwable $err) {
+      DB::rollback();
+      return $this->apiRsp(500, null, $err);
     }
   }
 
@@ -209,9 +217,8 @@ class DoctorController extends Controller {
       $hospital = json_decode($req->hospital);
       $hospital = Hospital::getItemBySubdomain($hospital->subdomain);
 
-      $item->user_id = $user->id;
-      $item->hospital_id = $hospital->id;
-      $item->save();
+      $req->user_id = $user->id;
+      $req->hospital_id = $hospital->id;
 
       $this->saveItem($item, $req);
 

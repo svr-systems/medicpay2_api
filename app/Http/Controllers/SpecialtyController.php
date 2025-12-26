@@ -124,6 +124,7 @@ class SpecialtyController extends Controller {
 
   public static function saveItem($item, $data) {
     $item->name = GenController::filter($data->name, 'U');
+    $item->is_doctor = GenController::filter($data->is_doctor, 'b');
     $item->save();
 
     return $item;

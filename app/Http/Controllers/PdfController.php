@@ -81,7 +81,7 @@ class PdfController extends Controller {
       $this->fpdf->Ln(1);
       $this->pdfCenter('__________________________', 10);
       $this->fpdf->Ln(1);
-      $this->pdfCenter($req->legend, 10);
+      $this->pdfCenter('APROBADO', 10);
       $this->fpdf->Ln(1);
       $this->pdfCenter($modo_ingreso . ' ARQC: ' . $req->arqc, 10);
       $this->fpdf->Ln(1);

@@ -68,3 +68,5 @@ Route::get('ticket', function () {
 
 Route::get('cargo', [OpenpayController::class, 'getCharge']);
 Route::get('invoice', [FacturapiController::class, 'testingInvoice']);
+Route::get('invoice/patient', [FacturapiController::class, 'testingPatientInvoice']);
+Route::get('consultations/doctor/stamp/{consultation_id}', [FacturapiController::class, 'doctorConsultationStamp']);
