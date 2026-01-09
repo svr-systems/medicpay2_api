@@ -8,8 +8,10 @@ use DB;
 use Illuminate\Http\Request;
 use Throwable;
 
-class UserBankDataController extends Controller {
-  public function index(Request $req) {
+class UserBankDataController extends Controller
+{
+  public function index(Request $req)
+  {
     try {
       return $this->apiRsp(
         200,
@@ -21,7 +23,8 @@ class UserBankDataController extends Controller {
     }
   }
 
-  public function show(Request $req, $id) {
+  public function show(Request $req, $id)
+  {
     try {
       return $this->apiRsp(
         200,
@@ -33,64 +36,18 @@ class UserBankDataController extends Controller {
     }
   }
 
-  public function destroy(Request $req, $id) {
-    DB::beginTransaction();
-    try {
-      $item = UserBankData::find($id);
-
-      if (!$item) {
-        return $this->apiRsp(422, 'ID no existente');
-      }
-
-      $item->is_active = false;
-      $item->updated_by_id = $req->user()->id;
-      $item->save();
-
-      DB::commit();
-      return $this->apiRsp(
-        200,
-        'Registro inactivado correctamente'
-      );
-    } catch (Throwable $err) {
-      DB::rollback();
-      return $this->apiRsp(500, null, $err);
-    }
-  }
-
-  public function restore(Request $req) {
-    DB::beginTransaction();
-    try {
-      $item = UserBankData::find($req->id);
-
-      if (!$item) {
-        return $this->apiRsp(422, 'ID no existente');
-      }
-
-      $item->is_active = true;
-      $item->updated_by_id = $req->user()->id;
-      $item->save();
-
-      DB::commit();
-      return $this->apiRsp(
-        200,
-        'Registro activado correctamente',
-        ['item' => UserBankData::getItem(null, $item->id)]
-      );
-    } catch (Throwable $err) {
-      DB::rollback();
-      return $this->apiRsp(500, null, $err);
-    }
-  }
-
-  public function store(Request $req) {
+  public function store(Request $req)
+  {
     return $this->storeUpdate($req, $req->id);
   }
 
-  public function update(Request $req, $id) {
+  public function update(Request $req, $id)
+  {
     return $this->storeUpdate($req, $id);
   }
 
-  public function storeUpdate($req, $id) {
+  public function storeUpdate($req, $id)
+  {
     DB::beginTransaction();
     try {
       $valid = UserBankData::valid($req->all());
@@ -123,7 +80,8 @@ class UserBankDataController extends Controller {
     }
   }
 
-  public static function saveItem($item, $data) {
+  public static function saveItem($item, $data)
+  {
     $item->user_id = $data->user()->id;
     $item->bank_type_id = GenController::filter($data->bank_type_id, 'id');
     $item->bank_account = GenController::filter($data->bank_account, 'U');
@@ -133,7 +91,8 @@ class UserBankDataController extends Controller {
     return $item;
   }
 
-  public function valid(Request $req) {
+  public function valid(Request $req)
+  {
     DB::beginTransaction();
     try {
       $valid = UserBankData::validValidation($req->all());
@@ -147,7 +106,7 @@ class UserBankDataController extends Controller {
       }
 
       $item->updated_by_id = $req->user()->id;
-      $item->is_valid = GenController::filter($req->is_valid,'b');
+      $item->is_valid = GenController::filter($req->is_valid, 'b');
       $item->validated_by_id = $req->user()->id;
       $item->validated_at = date('Y-m-d H:i:s');
       $item->bank_validated_path = DocMgrController::save(
@@ -169,16 +128,17 @@ class UserBankDataController extends Controller {
     }
   }
 
-  public function clabeValid(Request $req) {
+  public function clabeValid(Request $req)
+  {
     try {
-      $clabe = str_replace(' ','',$req->bank_clabe);
+      $clabe = str_replace(' ', '', $req->bank_clabe);
 
-      $bank_code = substr($clabe,0,3);
+      $bank_code = substr($clabe, 0, 3);
       $bank_type = BankType::getByCode($bank_code);
 
       $item = new \stdClass;
       $item->bank_type_id = $bank_type->id;
-      $item->bank_account = substr($clabe,6,11);
+      $item->bank_account = substr($clabe, 6, 11);
       $item->bank_clabe = $clabe;
       $item->bank_type = $bank_type;
 

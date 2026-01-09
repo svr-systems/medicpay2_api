@@ -35,10 +35,12 @@ Route::group(['prefix' => 'public'], function () {
       Route::get('{id}', [UserController::class, 'getItemAccountConfirm']);
     });
   });
+
   Route::group(['prefix' => 'user_fiscal_data'], function () {
     Route::get('{consultation_id}', [UserFiscalDataController::class, 'getFiscalDataByConsultation']);
     Route::post('{consultation_id}', [UserFiscalDataController::class, 'setFiscalDataByConsultation']);
   });
+
   Route::post('consultation/doctor/stamp/{consultation_id}', [FacturapiController::class, 'doctorConsultationStamp']);
   Route::post('consultation/payment/card', [OpenpayController::class, 'paymentCard']);
   Route::post('consultations/invoce/stamp', [FacturapiController::class, 'patientConsultationStamp']);
@@ -51,11 +53,9 @@ Route::group(['prefix' => 'public'], function () {
 });
 
 Route::group(['middleware' => 'auth:api'], function () {
-  Route::post('logout', [AuthController::class, 'logout'])
-  ;
+  Route::post('logout', [AuthController::class, 'logout']);
+
   //Catalogs
-  Route::apiResource('/catalogs/specialties', SpecialtyController::class);
-  Route::post('/catalogs/specialties/restore', [SpecialtyController::class, 'restore']);
   Route::get('/catalogs/{catalog}', [CatalogController::class, 'index']);
 
 
@@ -78,21 +78,6 @@ Route::group(['middleware' => 'auth:api'], function () {
   });
   Route::apiResource('patients', PatientController::class);
 
-  //User bank data
-  Route::group(['prefix' => 'user_bank_data'], function () {
-    Route::post('restore', [UserBankDataController::class, 'restore']);
-    Route::post('valid', [UserBankDataController::class, 'valid']);
-    Route::post('clabe/valid', [UserBankDataController::class, 'clabeValid']);
-  });
-  Route::apiResource('user_bank_data', UserBankDataController::class);
-
-  //User fiscal data
-  Route::group(['prefix' => 'user_fiscal_data'], function () {
-    Route::post('restore', [UserFiscalDataController::class, 'restore']);
-  });
-  Route::apiResource('user_fiscal_data', UserFiscalDataController::class);
-
-
   //Doctors
   Route::group(['prefix' => 'doctors'], function () {
     Route::group(['prefix' => 'banks'], function () {
@@ -112,15 +97,37 @@ Route::group(['middleware' => 'auth:api'], function () {
   });
   Route::apiResource('hospitals', HospitalController::class);
 
-  //Users
-
-  //User bank data
-  Route::group(['prefix' => 'users'], function () {
-    //User bank data
-    Route::group(['prefix' => 'facturapi'], function () {
-      Route::get('organization', [FacturapiDataController::class, 'index']);
-      Route::post('organization', [FacturapiDataController::class, 'storeOrganization']);
+  /**
+   * ===========================================
+   * DOCTOR
+   * ===========================================
+   */
+  Route::group(['prefix' => 'doctor'], function () {
+    Route::group(['prefix' => 'user_bank_data'], function () {
+      Route::post('valid', [UserBankDataController::class, 'valid']);
+      Route::post('clabe/valid', [UserBankDataController::class, 'clabeValid']);
     });
+    Route::apiResource('user_bank_data', UserBankDataController::class);
+
+    Route::group(['prefix' => 'facturapi_data'], function () {
+      Route::get('', [FacturapiDataController::class, 'index']);
+      Route::post('', [FacturapiDataController::class, 'storeOrganization']);
+    });
+
+    Route::apiResource('user_fiscal_data', UserFiscalDataController::class);
+  });
+
+  /**
+   * ===========================================
+   * SYSTEM
+   * ===========================================
+   */
+  Route::group(['prefix' => 'specialties'], function () {
+    Route::post('restore', [SpecialtyController::class, 'restore']);
+  });
+  Route::apiResource('specialties', SpecialtyController::class);
+
+  Route::group(['prefix' => 'users'], function () {
     Route::post('restore', [UserController::class, 'restore']);
   });
   Route::apiResource('users', UserController::class);

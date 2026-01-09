@@ -8,9 +8,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Validator;
 
-class Specialty extends Model {
+class Specialty extends Model
+{
   use HasFactory;
-  protected function serializeDate(DateTimeInterface $date) {
+  protected function serializeDate(DateTimeInterface $date)
+  {
     return Carbon::instance($date)->toISOString(true);
   }
   protected $casts = [
@@ -18,7 +20,8 @@ class Specialty extends Model {
     'updated_at' => 'datetime:Y-m-d H:i:s',
   ];
 
-  public static function valid($data) {
+  public static function valid($data)
+  {
     $rules = [
       'name' => 'required|string|min:2|max:80',
       'is_doctor' => 'required|boolean'
@@ -29,13 +32,15 @@ class Specialty extends Model {
     return Validator::make($data, $rules, $msgs);
   }
 
-  static public function getUiid($id) {
+  static public function getUiid($id)
+  {
     return 'ES-' . str_pad($id, 3, '0', STR_PAD_LEFT);
   }
 
-  static public function getItems($req) {
+  static public function getItems($req)
+  {
     $items = Specialty::
-    where('is_active', boolval($req->is_active));
+      where('is_active', boolval($req->is_active));
 
     $items = $items->
       orderBy('name')->
@@ -54,11 +59,13 @@ class Specialty extends Model {
     return $items;
   }
 
-  static public function getItem($req, $id) {
+  static public function getItem($req, $id)
+  {
     $item = Specialty::find($id);
     $item->uiid = Specialty::getUiid($item->id);
     $item->created_by = User::find($item->created_by_id, ['email']);
     $item->updated_by = User::find($item->updated_by_id, ['email']);
+    $item->is_doctor = (bool) $item->is_doctor;
 
     return $item;
   }
