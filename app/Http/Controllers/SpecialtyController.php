@@ -7,8 +7,10 @@ use DB;
 use Illuminate\Http\Request;
 use Throwable;
 
-class SpecialtyController extends Controller {
-  public function index(Request $req) {
+class SpecialtyController extends Controller
+{
+  public function index(Request $req)
+  {
     try {
       return $this->apiRsp(
         200,
@@ -20,7 +22,8 @@ class SpecialtyController extends Controller {
     }
   }
 
-  public function show(Request $req, $id) {
+  public function show(Request $req, $id)
+  {
     try {
       return $this->apiRsp(
         200,
@@ -32,7 +35,8 @@ class SpecialtyController extends Controller {
     }
   }
 
-  public function destroy(Request $req, $id) {
+  public function destroy(Request $req, $id)
+  {
     DB::beginTransaction();
     try {
       $item = Specialty::find($id);
@@ -56,7 +60,8 @@ class SpecialtyController extends Controller {
     }
   }
 
-  public function restore(Request $req) {
+  public function restore(Request $req)
+  {
     DB::beginTransaction();
     try {
       $item = Specialty::find($req->id);
@@ -81,15 +86,18 @@ class SpecialtyController extends Controller {
     }
   }
 
-  public function store(Request $req) {
+  public function store(Request $req)
+  {
     return $this->storeUpdate($req, null);
   }
 
-  public function update(Request $req, $id) {
+  public function update(Request $req, $id)
+  {
     return $this->storeUpdate($req, $id);
   }
 
-  public function storeUpdate($req, $id) {
+  public function storeUpdate($req, $id)
+  {
     DB::beginTransaction();
     try {
       $valid = Specialty::valid($req->all());
@@ -122,7 +130,8 @@ class SpecialtyController extends Controller {
     }
   }
 
-  public static function saveItem($item, $data) {
+  public static function saveItem($item, $data)
+  {
     $item->name = GenController::filter($data->name, 'U');
     $item->is_doctor = GenController::filter($data->is_doctor, 'b');
     $item->save();
