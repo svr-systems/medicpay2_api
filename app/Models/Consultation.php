@@ -205,6 +205,7 @@ class Consultation extends Model
         'transaction_id',
         'patient_invoice_id',
         'created_at as created_at_label',
+        'created_at',
       ]);
 
     $item->uiid = Consultation::getUiid($item->id);

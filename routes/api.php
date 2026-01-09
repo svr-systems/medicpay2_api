@@ -39,6 +39,7 @@ Route::group(['prefix' => 'public'], function () {
     Route::get('{consultation_id}', [UserFiscalDataController::class, 'getFiscalDataByConsultation']);
     Route::post('{consultation_id}', [UserFiscalDataController::class, 'setFiscalDataByConsultation']);
   });
+  Route::get('3dsecure/transaction', [OpenpayController::class, 'saveOpenpayTransaction']);
   Route::post('consultation/doctor/stamp/{consultation_id}', [FacturapiController::class, 'doctorConsultationStamp']);
   Route::post('consultation/payment/card', [OpenpayController::class, 'paymentCard']);
   Route::post('consultations/invoce/stamp', [FacturapiController::class, 'patientConsultationStamp']);

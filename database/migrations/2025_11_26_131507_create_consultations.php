@@ -16,10 +16,9 @@ return new class extends Migration {
       $table->foreignId('patient_id')->constrained('patients');
       $table->decimal('consultation_amount', 11, 2);
       $table->decimal('charge_amount', 11, 2);
-
     });
   }
-  
+
   public function down(): void {
     Schema::dropIfExists('consultations');
   }
