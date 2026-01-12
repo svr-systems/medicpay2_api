@@ -97,10 +97,10 @@ class OpenpayController extends Controller {
       $message = 'Transacción fallida. Comuniquese con su banco e ingrese sus datos correctamente e inténtelo de nuevo.';
 
       if ($error_code === 3004) {
-        $message = 'Esta tarjeta ha sido reportada como robada.';
+        $message = 'Tarjeta declinada.';
         $http_code = 422;
       } elseif ($error_code === 3005) {
-        $message = 'Riesgo de fraude detectado por el sistema antifraude.';
+        $message = 'Tarjeta declinada.';
         $http_code = 422;
       } else {
         return $this->apiRsp(500, null, $e);
@@ -115,7 +115,7 @@ class OpenpayController extends Controller {
 
   }
 
-  public function saveOpenpayTransaction(Request $req) {
+  public function saveOpenpayTransaction($openpay_id) {
     DB::beginTransaction();
     try {
       $openpay = Openpay::getInstance(
@@ -123,7 +123,7 @@ class OpenpayController extends Controller {
         env('OPENPAY_CUSTOMER_ID')
       );
 
-      $charge = $openpay->charges->get($req->openpay_id);
+      $charge = $openpay->charges->get($openpay_id);
 
       $openpay_id = $charge->id;
 
@@ -179,7 +179,8 @@ class OpenpayController extends Controller {
       DB::commit();
       return $this->apiRsp(
         200,
-        'Transacción terminada correctamente'
+        'Transacción terminada correctamente',
+        ['status' => $status]
       );
     } catch (Throwable $err) {
       DB::rollback();
